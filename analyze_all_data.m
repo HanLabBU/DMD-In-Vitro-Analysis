@@ -224,7 +224,6 @@ for i = 1:length({fov_results.name})
     
     % Update/Save all results
     save([save_all_path fov_results(i).name], 'allresults');
-    
 end
 
 

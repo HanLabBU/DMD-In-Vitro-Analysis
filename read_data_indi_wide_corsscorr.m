@@ -86,8 +86,6 @@ for id=1:length(wideloc)
     end
     
     %%% Put in matrix%%%
- % indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)),1) ];
-  %wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)),1)  ];
  %subthresIndi= indifile.allresults.trace_ws;
   % subthresWide= widefile.allresults.trace_ws;  
     subthresIndi= indifile.allresults.orig_traceDN;
@@ -194,7 +192,7 @@ cindiS=cindiS(~isnan(cindiS))
 % PLOT
 figure('Color','w')
 plot(rdist,cindi,'.r','Markersize',20)
-hold on,plot(rdist,cwide,'.k','Markersize',20)
+hold on, plot(rdist,cwide,'.k','Markersize',20)
 
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
@@ -204,6 +202,7 @@ yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-k','Linewidth',2)
 xlabel('Distance')
 ylabel('Corr')
+title('cindi vs. cwide');
 
 
 [h,p,ci,stats] = ttest(cindi,cwide)
@@ -230,6 +229,7 @@ yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-k','Linewidth',2)
 xlabel('Distance')
 ylabel('Corr')
+title('cindiS vs. cwideS');
 
 [h,p,ci,stats] = ttest(cindiS,cwideS)
 figure('COlor','w','Position', [ 300 300 200 200])
