@@ -14,6 +14,10 @@ root_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Project\v2
 % Folder to save all analysis data
 save_all_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\';
 
+% Exclude trials with obvious motion artefacts
+exclude_motart = 1;
+artefact_trials = {{'Culture 5\Wide', 2}, {'Culture 24\Wide', 3}, {'Culture 23\Wide', 3} }; % {Session, <trial no>}
+
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses
 % for all trials in a given folder
@@ -50,40 +54,53 @@ while ~isempty(search_dirs)
     search_dirs(1) = [];
 end
 
-%% TODO make a structure that pairs all of the data?
-% Also, save the ROIs, the original traces, the name of the FOV folder, and
+%% Save the ROIs, the original traces, the name of the FOV folder, and
 % the mask type
 for i = 1:length(FOV_dirs)
-    fov = FOV_dirs{i};
+    fov = FOV_dirs{i}
     listings = dir(fov);
     files = {listings.name};
-   
-    
     
     % Check if all results file exists for this FOV in the saved folder
-    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults'];
+    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults']
     allresults.fov_name = strrep(erase(fov, {root_path, 'Individual Mask', 'Wide Field'}), '\', '');
-    
-    % Check if all results already exists and load its contents
-    % After this point all of the allresults files from root_path should
-    % be created
-    if exist([save_all_path allresults_file '.mat'])
-        load([save_all_path allresults_file]);
-    end
     
     % Read in all trials and save original traces
     trace_files = files(contains(files, 'traces'));
     allresults.trial = {};
+    num_skipped = 0;
     
-    for i=1:length(trace_files)
-        load([fov trace_files{i}]);
-        allresults.trial{i}.traces = traces;
-    end
+    for j=1:length(trace_files)
+        
+        % Check if this trial is listed to have motion artefacts
+        skip_trial = 0;
+        if exclude_motart
+            for k=1:length(artefact_trials)
+                if contains(fov, artefact_trials{k}{1}) == 1 & j == artefact_trials{k}{2}
+                    skip_trial = 1;
+                end
+            end
+        end
+        
+        if skip_trial == 1
+            % DEBUG
+            [fov ' trial # ' num2str(j)]
+            
+            disp('Skipped');
+            num_skipped = num_skipped + 1;
+            continue
+            
+        end
+        
+        load([fov trace_files{j}]);
+        allresults.trial{j - num_skipped}.traces = traces;
+        
+	end
     
     % Save all the ROIs
     roi_file = files(contains(files, 'ROIs'));
     load([fov roi_file{1}]);
-    allresults.rois = ROIs;
+    allresults.roi = ROIs;
     
     % Save the type of mask
     if contains(fov, 'Individual Mask')
@@ -91,34 +108,33 @@ for i = 1:length(FOV_dirs)
     elseif contains(fov, 'Wide Field')
         allresults.type = 'wide';
     end
-    
+    allresults
     save([save_all_path allresults_file], 'allresults');
 end
 
 %% Calculate the cross correlations and distance between neurons
-for i = 1:length(FOV_dirs)
-    fov = FOV_dirs{i};
-    listings = dir(fov);
-    files = {listings.name};
+% TODO fix to iterate through allresults
+fov_results = dir([save_all_path '*.mat']);
+length({fov_results.name})
+for i = 1:length({fov_results.name})
     
     % Check if allresults file exists for this FOV in the saved folder
-    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults']
+    allresults_file = fov_results(i).name
     load([save_all_path allresults_file]);
-    
     
     % Compile all of the traces in the trial
     max_trial = 0;
-    for i=1:length(allresults.trial)
-        max_trial = max(max_trial, size(allresults.trial{i}.traces, 1));
+    for j=1:length(allresults.trial)
+        max_trial = max(max_trial, size(allresults.trial{j}.traces, 1));
     end
     
     trial_traces = NaN(max_trial, size(allresults.trial{1}.traces, 2));
-    for i=1:length(allresults.trial)
-        trial_traces(1:size(allresults.trial{i}.traces, 1), :, i) = allresults.trial{i}.traces;
+    for j=1:length(allresults.trial)
+        trial_traces(1:size(allresults.trial{j}.traces, 1), :, j) = allresults.trial{j}.traces;
     end
     
     % TODO will need to make sure all of the results data is saved
-    cross_corr_result = cross_correlation_distance(trial_traces, allresults.ROIs);
+    cross_corr_result = cross_correlation_distance(trial_traces, allresults.roi);
     
     allresults.roi_centroids = cross_corr_result.centroids;
     allresults.neuron_dist = cross_corr_result.neuron_dist;
@@ -128,32 +144,42 @@ end
 
 %% Detect spikes and calculate SNR
 % At the moment, different tweaks are going to be made to the SNR algorithm
-for i = 1:length(FOV_dirs)
-    fov = FOV_dirs{i};
-    listings = dir(fov);
-    files = {listings.name};
-   
-    % Check if all results file exists for this FOV in the saved folder
-    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults'];
+fov_results = dir([save_all_path '*.mat']);
+length({fov_results.name})
+for i = 1:length({fov_results.name})
+    allresults_file = {fov_results.name};
+    allresults_file = allresults_file{i}
     load([save_all_path allresults_file]);
     
-    
-    for i=1:length(allresults.trial)
-        traces = allresults.trial{i}.traces;
+    for j=1:length(allresults.trial)
+        traces = allresults.trial{j}.traces;
         
         % Perform the spike_detection_SNR
         result = spike_detect_SNR_v3(traces);
         
-        % Save all of the SNR results data into the allresults structure
-        allresults.orig_trace{:, i} = result.orig_trace;
-        allresults.denoise_trace{:, i} = result.denoise_trace;
-        allresults.trace_ws{:, i} = result.trace_ws;
-        allresults.orig_traceDN{:, i} = result.orig_traceDN;
-        allresults.roaster{:, i} = result.roaster;
-        allresults.spike_snr{:, i} = result.spike_snr;
-        allresults.spike_amplitude{:, i} = result.spike_amplitude;
-        allresults.spike_idx{:, i} = result.spike_idx;
-        allresults.trace_noise{:, i} = result.trace_noise;        
+        % Store each trial's spike and SNR data columnwise
+        if j == 1
+            allresults.orig_trace = result.orig_trace;
+            allresults.denoise_trace = result.denoise_trace;
+            allresults.trace_ws = result.trace_ws;
+            allresults.orig_traceDN = result.orig_traceDN;
+            allresults.roaster = result.roaster;
+            allresults.spike_snr = result.spike_snr;
+            allresults.spike_amplitude = result.spike_amplitude;
+            allresults.spike_idx = result.spike_idx;
+            allresults.trace_noise = result.trace_noise;        
+        else
+            % Save all of the SNR results data into the allresults structure
+            allresults.orig_trace = horzcat(allresults.orig_trace, result.orig_trace);
+            allresults.denoise_trace = horzcat(allresults.denoise_trace, result.denoise_trace);
+            allresults.trace_ws = horzcat(allresults.trace_ws, result.trace_ws);
+            allresults.orig_traceDN = horzcat( allresults.orig_traceDN, result.orig_traceDN);
+            allresults.roaster = horzcat( allresults.roaster, result.roaster);
+            allresults.spike_snr = horzcat(allresults.spike_snr, result.spike_snr);
+            allresults.spike_amplitude = horzcat(allresults.spike_amplitude, result.spike_amplitude);
+            allresults.spike_idx = horzcat( allresults.spike_idx, result.spike_idx);
+            allresults.trace_noise = horzcat(allresults.trace_noise, result.trace_noise);        
+        end
     end
     
     % Save all the SNR results 
@@ -164,15 +190,10 @@ end
 % Store all of the photobleaching ratios
 all_pb_ratios = [];
 pb_plot_labels = {};
-for i = 1:length(FOV_dirs)
-    fov = FOV_dirs{i};
-    listings = dir(fov);
-    files = {listings.name};
-    isdirs = [listings.isdir];
-    
-    % Check if all results file exists for this FOV in the saved folder
-    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults'];
-    load([save_all_path allresults_file])
+fov_results = dir([save_all_path '*.mat']);
+for i = 1:length({fov_results.name})
+    load([save_all_path fov_results(i).name]);
+	fov_results(i).name
     
     % Store all of the ratios in a single folder
     folder_pb_ratios = [];
@@ -181,15 +202,12 @@ for i = 1:length(FOV_dirs)
     trial_pb_averages_std = [];
     
     % Load each trial's traces
-    for i=1:length(files)
-        % Make sure that it is the traces mat file
-        if contains(files{i}, 'traces') 
-            load([fov files{i}]);
+    for j=1:length(allresults.trial)
+            traces = allresults.trial{j}.traces;
             trial_pb_ratios = photobleach_estimation(traces, 300);
             folder_pb_ratios = [folder_pb_ratios; trial_pb_ratios];
             
             trial_pb_averages_std = [trial_pb_averages_std, [nanmean(trial_pb_ratios); std(trial_pb_ratios)]];
-        end
     end
     
     % Average and std of pb ratio for entire folder
@@ -200,10 +218,12 @@ for i = 1:length(FOV_dirs)
     
     % Add folder to all ratios with averaging across trials
     all_pb_ratios = horzcat_pad(all_pb_ratios, nanmean(folder_pb_ratios, 2));
-    pb_plot_labels{end + 1} = [allresults.fov_name ' ' allresults.type];
+    
+    [allresults.fov_name ' ' allresults.type]
+    pb_plot_labels = cat(2, pb_plot_labels, [allresults.fov_name ' ' allresults.type]);
     
     % Update/Save all results
-    save([save_all_path allresults_file], 'allresults');
+    save([save_all_path fov_results(i).name], 'allresults');
     
 end
 

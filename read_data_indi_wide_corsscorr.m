@@ -1,7 +1,7 @@
 
 % In vivo path
-cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\invivoDMD\')
-cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\comp_wide_indi\')
+%cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\invivoDMD\')
+%cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\comp_wide_indi\')
 
 % In vitro path
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
@@ -18,7 +18,27 @@ for id=1:length(ses)
  end
     
 end
+wideloc=find(findwide);
 
+% Find corresponding individual field
+indiloc = [];
+for file=1:length(ses)
+    if contains(ses(file).name, 'Individual') == 1
+        load([ses(file).name]);
+        indi_name = allresults.fov_name;
+
+        for id=1:length(ses)
+            if contains(ses(id).name, 'Wide') == 1 & contains(ses(id).name, indi_name) == 1           
+                % Sanity check
+                load([ses(id).name]);
+
+                if strcmp(allresults.fov_name, indi_name) == 1
+                    indiloc = [indiloc, id];
+                end
+            end
+        end
+    end
+end
 
 % Original code for finding the corresponding wide field mask
 %wideloc=find(findwide);
@@ -82,7 +102,7 @@ for ind2=1:length(nsel)
 %  A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
    % [c,lags]= xcorr(A1,A2,10,'Coeff');
         A1=  (subthresIndi(nsel(ind1),:));A2=  (subthresIndi(nsel(ind2),:));
-    [CC]=corrcoef(A1,A2,'Rows','complete');
+    [CC]=corrcoef(A1,A2, 'Rows', 'complete');
     allCmax(ind1,ind2)= CC(1,2);%max(abs(c));
    ROIdist(ind1,ind2)= sqrt(sum((irm(:,nsel(ind1)).*sc-irm(:,nsel(ind2)).*sc).^2));
 end;end
@@ -94,7 +114,7 @@ for ind2=1:length(nsel)
 %  A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
     A1=  (subthresWide(nsel(ind1),:));A2=  (subthresWide(nsel(ind2),:));
  
-   [CC]=corrcoef(A1,A2,'Rows','complete');
+   [CC]=corrcoef(A1,A2,'rows','complete');
     allCmaxW(ind1,ind2)= CC(1,2);%max(abs(c));
    ;
 end;end

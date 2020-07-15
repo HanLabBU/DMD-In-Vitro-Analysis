@@ -1,6 +1,6 @@
 % Used to plot all of the data
 
-%% Setup for plotting the data from the all_results folder
+%% Setup for plotting the data from the allresults folder
 % Folder to save all analysis data
 save_all_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\';
 
@@ -22,10 +22,10 @@ for i = 1:length(indi_files)
     wide_file = wide_file{1};
     
     load([save_all_path indi_file]);
-    indi_results = all_results;
+    indi_results = allresults;
     
     load([save_all_path wide_file]);
-    wide_results = all_results;
+    wide_results = allresults;
     
     % Check for matching ROIs and store them 
     match_rois_idx = []; % Top row is individual mask; Bottom row is wide field
