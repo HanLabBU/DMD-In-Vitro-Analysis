@@ -216,8 +216,8 @@ for i = 1:length({fov_results.name})
     % Save the photobleaching ratios into the all results variable
     allresults.bleach = folder_pb_ratios;
     
-    % Add folder to all ratios with averaging across trials
-    all_pb_ratios = horzcat_pad(all_pb_ratios, nanmean(folder_pb_ratios, 2));
+    % Add folder ratios to all pb ratio matrix
+    all_pb_ratios = horzcat_pad(all_pb_ratios, folder_pb_ratios(:));
     
     [allresults.fov_name ' ' allresults.type]
     pb_plot_labels = cat(2, pb_plot_labels, [allresults.fov_name ' ' allresults.type]);
