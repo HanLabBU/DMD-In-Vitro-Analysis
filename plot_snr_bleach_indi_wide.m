@@ -75,8 +75,11 @@ for id=1:length(wideloc)
   wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
   
   % Store all of the bleaching values
-  indiAllB = horzcat_pad(indiAllB, indifile.allresults.bleach(:)');
-  wideAllB = horzcat_pad(wideAllB, widefile.allresults.bleach(:)');
+  indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
+  wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
+  
+  indiAllB = horzcat_pad(indiAllB, indi_temp(:)');
+  wideAllB = horzcat_pad(wideAllB, wide_temp(:)');
   %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
   %wideAllB = [wideAllB, widefile.allresults.bleach(1, :)]
   
