@@ -6,6 +6,9 @@
 close all;
 clear all;
 
+% Use the scripts in the DMD scripts folder
+addpath('.');
+
 % in vitro data
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
@@ -45,7 +48,7 @@ for file=1:length(ses)
 end
 
 %% seelct matching ROI
-indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = []
+indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
 for id=1:length(wideloc)
     widefile=load(ses(wideloc(id)).name);
     indifile=load(ses(indiloc(id)).name);
@@ -69,11 +72,13 @@ for id=1:length(wideloc)
     
     %%% Put in matrix%%% average
   indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ];
-  wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ];
+  wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
   
   % Store all of the bleaching values
-  indiAllB = [indiAllB, indifile.allresults.bleach(1,mROI(:,1))]
-  wideAllB = [wideAllB, widefile.allresults.bleach(1,mROI(:,1))]
+  indiAllB = horzcat_pad(indiAllB, indifile.allresults.bleach(:)');
+  wideAllB = horzcat_pad(wideAllB, widefile.allresults.bleach(:)');
+  %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
+  %wideAllB = [wideAllB, widefile.allresults.bleach(1, :)]
   
   
   clear allIsnr
@@ -108,14 +113,14 @@ title([ 'Average of signal decay p= ' num2str(p)])
 
 % Violin plots of photobleaching
 figure;
-violin([indiAllB', wideAllB'], 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+violin(horzcat_pad(indiAllB', wideAllB'), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
 ylim([.50 1.10]);
 title(['Photobleaching ratios of individual DMD and wide field']);
 
-figure;
-violin([ -100.*[repmat(1, length(indiAllB), 1) - indiAllB'], -100.*[ repmat(1, length(wideAllB), 1) - wideAllB']], ...
-    'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-title(['Photobleaching decay of individual DMD and wide field']);
+%figure;
+%violin([ -100.*[repmat(1, length(indiAllB), 1) - indiAllB'], -100.*[ repmat(1, length(wideAllB), 1) - wideAllB']], ...
+%    'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+%title(['Photobleaching decay of individual DMD and wide field']);
 
 
 % Plot the SNRs
