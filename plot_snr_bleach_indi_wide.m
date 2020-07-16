@@ -120,11 +120,14 @@ violin(horzcat_pad(indiAllB', wideAllB'), 'xlabel', {'DMD', 'Wide Field'}, 'face
 ylim([.50 1.10]);
 title(['Photobleaching ratios of individual DMD and wide field']);
 
-%figure;
-%violin([ -100.*[repmat(1, length(indiAllB), 1) - indiAllB'], -100.*[ repmat(1, length(wideAllB), 1) - wideAllB']], ...
-%    'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-%title(['Photobleaching decay of individual DMD and wide field']);
+figure;
+indi_decay = -100.*[repmat(1, length(indiAllB), 1) - indiAllB'];
+wide_decay = -100.*[ repmat(1, length(wideAllB), 1) - wideAllB'];
+violin(horzcat_pad(indi_decay, wide_decay), ...
+    'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+title(['Photobleaching decay of individual DMD and wide field']);
 
+% Plot the bar graph and T test for the decay values
 
 % Plot the SNRs
 figure('COlor','w'),,plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
