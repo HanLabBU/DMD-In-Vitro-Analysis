@@ -142,7 +142,7 @@ for ind2=1:length(nsel)
 %  if ind1<ind2
  if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
     [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
-    c1=c(191:105);
+    c1=c(195:105);
     mean_corr = mean(abs(c1));
     allCmax(ind1,ind2)= mean_corr;
     allCx= [allCx ; c];
