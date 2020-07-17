@@ -71,7 +71,7 @@ for id=1:length(wideloc)
     end
     
     %%% Put in matrix%%% average
-  indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ];
+  indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ]; %TODO include all rows and linearize matrix
   wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
   
   % Store all of the bleaching values
@@ -112,7 +112,7 @@ set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('signal reduction %')
 xlim([ 0.5 2.5]); %ylim([0  20])
-title([ 'Average of signal decay p= ' num2str(p)])
+title([ 'Average of signal decay 1st trials p= ' num2str(p)])
 
 % Violin plots of photobleaching
 figure;
@@ -127,7 +127,17 @@ violin(horzcat_pad(indi_decay, wide_decay), ...
     'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
 title(['Photobleaching decay of individual DMD and wide field']);
 
-% Plot the bar graph and T test for the decay values
+% Plot the bar graph 
+% T test does not work here because the values are not correctly paired
+figure('COlor','w','Position', [ 300 300 200 200]);
+V1=nanmean(indi_decay);V1s=std(indi_decay)./sqrt(length(indi_decay));
+V2=nanmean(wide_decay);V2s=std(wide_decay)./sqrt(length(wide_decay));
+bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
+set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
+errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
+axis tight;ylabel('Signal Reduction %')
+legend indi wide;
+title(['Average signal decay p = ']);
 
 % Plot the SNRs
 figure('COlor','w'),,plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
@@ -141,5 +151,5 @@ set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('Spike SNR')
 xlim([ 0.5 2.5]); ylim([3 5])
-title([ 'p= ' num2str(p)])
+title([ 'SNR comparison p= ' num2str(p)])
 

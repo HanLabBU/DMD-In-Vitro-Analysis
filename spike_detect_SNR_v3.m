@@ -7,7 +7,7 @@ function  result=spike_detect_SNR_v3(traces,up_threshold, down_threshold)
 FS=500; % sampling frequency
 addpath(genpath('\\engnas.bu.edu\Research\eng_research_handata\Hua-an Tseng\Code\other\eegfilt\'))
 addpath(genpath('\\ad\eng\research\eng_research_handata\EricLowet\DMD\main_analysis\'))
-plot_yes=0;
+plot_yes=0; % TODO plot here to show traces
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;
     end

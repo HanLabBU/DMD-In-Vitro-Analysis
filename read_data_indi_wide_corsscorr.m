@@ -157,8 +157,8 @@ for ind2=1:length(nsel)
     if ind1<ind2
    if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
      [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),200,'Coeff');
-c1=c(191:211);
-    [n1 n2]= max(abs(c1));
+c1=c(191:211); % This is the +/- around 0 from the 200 parameter, the offset
+    [n1 n2]= max(abs(c1)); % Use mean
     allCmaxW(ind1,ind2)= c1(n2);
      allCmaxW(ind2,ind1)= c1(n2);
    % allCmaxW(ind2,ind1)=  allCmax(ind1,ind2);
@@ -192,7 +192,7 @@ cindiS=cindiS(~isnan(cindiS))
 % PLOT
 figure('Color','w')
 plot(rdist,cindi,'.r','Markersize',20)
-hold on, plot(rdist,cwide,'.k','Markersize',20)
+hold on, %plot(rdist,cwide,'.k','Markersize',20)
 
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
