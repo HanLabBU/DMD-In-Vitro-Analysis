@@ -6,8 +6,13 @@
 close all;
 clear all;
 
+addpath('.');
+
 % In vitro path
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+
+% Add the
+addpath('\\ad\eng\research\eng_research_handata\EricLowet\DMD\main_analysis\');
 
 ses=dir('*.mat');
 
@@ -136,10 +141,10 @@ for ind2=1:length(nsel)
   A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
 %  if ind1<ind2
  if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
-    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),200,'Coeff');
-    c1=c(191:211);
-    [n1 n2]= max(abs(c1));
-    allCmax(ind1,ind2)= c1(n2);
+    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
+    c1=c(191:105);
+    mean_corr = mean(abs(c1));
+    allCmax(ind1,ind2)= mean_corr;
     allCx= [allCx ; c];
     allCm=[allCm;c1(n2)];
  %     allCx= [allCx ; c];
@@ -159,11 +164,11 @@ for ind2=1:length(nsel)
   A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
     if ind1<ind2
    if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
-     [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),200,'Coeff');
-c1=c(191:211); % This is the +/- around 0 from the 200 parameter, the offset
-    [n1 n2]= max(abs(c1)); % Use mean
-    allCmaxW(ind1,ind2)= c1(n2);
-     allCmaxW(ind2,ind1)= c1(n2);
+    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
+    c1=c(95:105) % This is the +/- around 0 from the 200 parameter, the offset
+    mean_corr = mean(abs(c1)); % Use mean
+    allCmaxW(ind1,ind2)= mean_corr;
+     allCmaxW(ind2,ind1)= mean_corr;
    % allCmaxW(ind2,ind1)=  allCmax(ind1,ind2);
    else;  allCmaxW(ind1,ind2)=NaN;end
     end
@@ -192,11 +197,10 @@ cwideS=cwideS(~isnan(cindiS))
 cindiS=cindiS(~isnan(cindiS))
 %allCx=allCx(~isnan(cindiS),:)
 
-% PLOT
+% PLOT subthreshold cross correlation
 figure('Color','w')
 plot(rdist,cindi,'.r','Markersize',20)
 hold on, plot(rdist,cwide,'.k','Markersize',20)
-
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-r','Linewidth',2)
@@ -205,7 +209,9 @@ yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-k','Linewidth',2)
 xlabel('Distance')
 ylabel('Corr')
-title('cindi vs. cwide');
+legend({[], []}); % TODO
+title_string = ['Cross correlation subthreshold (Vm) indi vs. wide'];
+title(title_string);
 
 
 [h,p,ci,stats] = ttest(cindi,cwide)
@@ -230,9 +236,10 @@ plot(rdist2,yplot1,'-r','Linewidth',2)
 fitResults1 = polyfit(rdist2,cwideS,1);
 yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-k','Linewidth',2)
-xlabel('Distance')
-ylabel('Corr')
-title('cindiS vs. cwideS');
+xlabel('Distance');
+ylabel('Corr');
+title_string = ['Cross correlation spike-spike indi vs. wide'];
+title(title_string);
 
 [h,p,ci,stats] = ttest(cindiS,cwideS)
 figure('COlor','w','Position', [ 300 300 200 200])
