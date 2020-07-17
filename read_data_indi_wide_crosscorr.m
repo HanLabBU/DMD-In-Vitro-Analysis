@@ -11,7 +11,10 @@ addpath('.');
 % In vitro path
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
-% Add the
+% Final figure folder
+save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
+
+% Scripts for needed functions
 addpath('\\ad\eng\research\eng_research_handata\EricLowet\DMD\main_analysis\');
 
 ses=dir('*.mat');
@@ -142,11 +145,11 @@ for ind2=1:length(nsel)
 %  if ind1<ind2
  if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
     [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
-    c1=c(195:105);
-    mean_corr = mean(abs(c1));
+    c1=c(95:105);
+    mean_corr = mean(c1);
     allCmax(ind1,ind2)= mean_corr;
     allCx= [allCx ; c];
-    allCm=[allCm;c1(n2)];
+    allCm=[allCm; mean_corr];
  %     allCx= [allCx ; c];
  %allCmax(ind2,ind1)= c1(n2);
 
@@ -166,7 +169,7 @@ for ind2=1:length(nsel)
    if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
     [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
     c1=c(95:105) % This is the +/- around 0 from the 200 parameter, the offset
-    mean_corr = mean(abs(c1)); % Use mean
+    mean_corr = mean(c1); % Use mean
     allCmaxW(ind1,ind2)= mean_corr;
      allCmaxW(ind2,ind1)= mean_corr;
    % allCmaxW(ind2,ind1)=  allCmax(ind1,ind2);
@@ -204,15 +207,17 @@ hold on, plot(rdist,cwide,'.k','Markersize',20)
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-r','Linewidth',2)
-fitResults1 = polyfit(rdist,cwide,1);
-yplot1 = polyval(fitResults1,rdist);
+fitResults2 = polyfit(rdist,cwide,1);
+yplot1 = polyval(fitResults2,rdist);
 plot(rdist,yplot1,'-k','Linewidth',2)
 xlabel('Distance')
 ylabel('Corr')
-legend({[], []}); % TODO
+legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
+
 title_string = ['Cross correlation subthreshold (Vm) indi vs. wide'];
 title(title_string);
-
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 [h,p,ci,stats] = ttest(cindi,cwide)
 figure('COlor','w','Position', [ 300 300 200 200])
@@ -226,6 +231,9 @@ xlim([ 0.5 2.5]); %ylim([0  20])
 title([ 'p= ' num2str(p)])
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Spike to spike correlation
+
+
 figure('Color','w')
 plot(rdist2,cindiS,'.r','Markersize',20)
 hold on,plot(rdist2,cwideS,'.k','Markersize',20)
@@ -233,13 +241,17 @@ hold on,plot(rdist2,cwideS,'.k','Markersize',20)
 fitResults1 = polyfit(rdist2,cindiS,1);
 yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-r','Linewidth',2)
-fitResults1 = polyfit(rdist2,cwideS,1);
-yplot1 = polyval(fitResults1,rdist2);
+fitResults2 = polyfit(rdist2,cwideS,1);
+yplot1 = polyval(fitResults2,rdist2);
 plot(rdist2,yplot1,'-k','Linewidth',2)
 xlabel('Distance');
 ylabel('Corr');
+legend({['indi slope=' fitResults1(1)], ['wide slope=' fitResults2(1)]});
 title_string = ['Cross correlation spike-spike indi vs. wide'];
 title(title_string);
+
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 [h,p,ci,stats] = ttest(cindiS,cwideS)
 figure('COlor','w','Position', [ 300 300 200 200])
