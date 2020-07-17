@@ -13,7 +13,7 @@ addpath('.');
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
 % Folder to save figures
-save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\Pierre Fabris\DMD Project\Data Figures\';
+save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
 
 % Ignore the first trial across each FOV
 ignore_first = 1;
@@ -117,7 +117,8 @@ end
 figure('COlor','w'),plot(indiB,'r'); hold on,plot(wideB,'k')
 legend indi wide
 [h,p,ci,stats] = ttest(indiB,wideB)
-figure('COlor','w','Position', [ 300 300 200 200])
+
+figure('COlor','w','Position', [ 300 300 300 450])
 V1=((1-nanmean(indiB)).*-1).*100;V1s=(std(indiB)./sqrt(length(indiB))).*100;
 V2=((1-nanmean(wideB)).*-1).*100;V2s=(std(wideB)./sqrt(length(wideB))).*100;
 bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
@@ -126,34 +127,45 @@ errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('signal reduction %')
 xlim([ 0.5 2.5]); %ylim([0  20])
 title([ 'Average of signal decay 1st trials p= ' num2str(p)])
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\Average signal decay of 1st trials of DMD and Wide Field.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\Average signal decay of 1st trials of DMD and Wide Field.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\Average signal decay of 1st trials of DMD and Wide Field.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\Average signal decay of 1st trials of DMD and Wide Field.eps'], 'epsc');
 
 % Violin plots of photobleaching
-figure;
+figure('Position', [300 300 800 750]);
 violin(horzcat_pad(indiAllB', wideAllB'), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+ylabel('Photobleach ratio');
+
+title_string = [];
 if ignore_first == 1
-    title(['Photobleaching ratios of individual DMD and wide field without first trials']);
+    title_string = ['Sumamry violin plots photobleaching ratios of individual DMD and wide field without first trials'];
 else
-    title(['Photobleaching ratios of individual DMD and wide field']);
+    title_string = ['Summary violin plots photobleaching ratios of individual DMD and wide field'];
 end
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
 % Violin plot of the photo decay
-figure;
+figure('Position', [300 300 450 450]);
 indi_decay = -100.*[repmat(1, length(indiAllB), 1) - indiAllB'];
 wide_decay = -100.*[ repmat(1, length(wideAllB), 1) - wideAllB'];
 violin(horzcat_pad(indi_decay, wide_decay), ...
     'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-if ignore_first == 1
-    title(['Photobleaching decay of individual DMD and wide field without first trials']);
-else
-    title(['Photobleaching decay of individual DMD and wide field']);
-end
 
+title_string = [];
+if ignore_first == 1
+    title_string = ['Summary violin plots photobleaching decay of individual DMD and wide field without first trials'];
+else
+    title_string = ['Summary violin plots photobleaching decay of individual DMD and wide field'];
+end
+title(title_string);
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
 % Plot the photobleaching decay bar graph 
 % T test does not work here because the values are not correctly paired
-figure('COlor','w','Position', [ 300 300 200 200]);
+figure('COlor','w','Position', [300 300 300 450]);
 V1=nanmean(indi_decay);V1s=std(indi_decay)./sqrt(length(indi_decay));
 V2=nanmean(wide_decay);V2s=std(wide_decay)./sqrt(length(wide_decay));
 bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
@@ -161,16 +173,23 @@ set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('Signal Reduction %')
 
+title_string = [];
 if ignore_first == 1
-    title(['Average signal decay without first trials']);
+    title_string = ['Average signal decay without first trials'];
 else
-    title(['Average signal decay']);
+    title_string = ['Average signal decay'];
 end
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
+
 
 % Plot the SNRs
 figure('COlor','w'),,plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
 legend indi wide
 [h,p,ci,stats] = ttest(indiSNR,wideSNR)
+
 figure('COlor','w','Position', [ 300 300 200 200])
 V1=nanmean(indiSNR);V1s=std(indiSNR)./sqrt(length(indiSNR));
 V2=nanmean(wideSNR);V2s=std(wideSNR)./sqrt(length(indiSNR));
@@ -181,3 +200,5 @@ axis tight;ylabel('Spike SNR')
 xlim([ 0.5 2.5]); ylim([3 5])
 title([ 'SNR comparison p= ' num2str(p)])
 
+saveas(gcf, [save_fig_path 'SNR\Jpeg Format\Average SNR.jpg']);
+saveas(gcf, [save_fig_path 'SNR\EPS Format\Average SNR' title_string '.eps'], 'epsc');
