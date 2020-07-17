@@ -12,6 +12,12 @@ addpath('.');
 % in vitro data
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
+% Folder to save figures
+save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\Pierre Fabris\DMD Project\Data Figures\';
+
+% Ignore the first trial across each FOV
+ignore_first = 1;
+
 ses=dir('*.mat');
 
 %%% search for wide
@@ -74,10 +80,17 @@ for id=1:length(wideloc)
   indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ]; %TODO include all rows and linearize matrix
   wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
   
-  % Store all of the bleaching values
-  indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
-  wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
+  if ignore_first == 1
+    % Store the bleaching values except for the first trial
+    indi_temp = indifile.allresults.bleach(2:end, mROI(:, 1));
+    wide_temp = widefile.allresults.bleach(2:end, mROI(:, 1));
+  else
+    % Store all of the bleaching values
+    indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
+    wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
   
+  end
+
   indiAllB = horzcat_pad(indiAllB, indi_temp(:)');
   wideAllB = horzcat_pad(wideAllB, wide_temp(:)');
   %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
@@ -113,21 +126,32 @@ errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('signal reduction %')
 xlim([ 0.5 2.5]); %ylim([0  20])
 title([ 'Average of signal decay 1st trials p= ' num2str(p)])
+%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\Average signal decay of 1st trials of DMD and Wide Field.jpg']);
+%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\Average signal decay of 1st trials of DMD and Wide Field.eps'], 'epsc');
 
 % Violin plots of photobleaching
 figure;
 violin(horzcat_pad(indiAllB', wideAllB'), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-ylim([.50 1.10]);
-title(['Photobleaching ratios of individual DMD and wide field']);
+if ignore_first == 1
+    title(['Photobleaching ratios of individual DMD and wide field without first trials']);
+else
+    title(['Photobleaching ratios of individual DMD and wide field']);
+end
 
+% Violin plot of the photo decay
 figure;
 indi_decay = -100.*[repmat(1, length(indiAllB), 1) - indiAllB'];
 wide_decay = -100.*[ repmat(1, length(wideAllB), 1) - wideAllB'];
 violin(horzcat_pad(indi_decay, wide_decay), ...
     'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-title(['Photobleaching decay of individual DMD and wide field']);
+if ignore_first == 1
+    title(['Photobleaching decay of individual DMD and wide field without first trials']);
+else
+    title(['Photobleaching decay of individual DMD and wide field']);
+end
 
-% Plot the bar graph 
+
+% Plot the photobleaching decay bar graph 
 % T test does not work here because the values are not correctly paired
 figure('COlor','w','Position', [ 300 300 200 200]);
 V1=nanmean(indi_decay);V1s=std(indi_decay)./sqrt(length(indi_decay));
@@ -136,8 +160,12 @@ bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7
 set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('Signal Reduction %')
-legend indi wide;
-title(['Average signal decay p = ']);
+
+if ignore_first == 1
+    title(['Average signal decay without first trials']);
+else
+    title(['Average signal decay']);
+end
 
 % Plot the SNRs
 figure('COlor','w'),,plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
