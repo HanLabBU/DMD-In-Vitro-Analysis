@@ -16,7 +16,7 @@ cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All 
 save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
 
 % Ignore the first trial across each FOV
-ignore_first = 1;
+ignore_first = 0;
 
 ses=dir('*.mat');
 

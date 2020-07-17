@@ -3,6 +3,9 @@
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\invivoDMD\')
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\comp_wide_indi\')
 
+close all;
+clear all;
+
 % In vitro path
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
@@ -33,7 +36,7 @@ for file=1:length(ses)
                 load([ses(id).name]);
 
                 if strcmp(allresults.fov_name, indi_name) == 1
-                    indiloc = [indiloc, id];
+                    indiloc = [indiloc, file];
                 end
             end
         end
@@ -192,7 +195,7 @@ cindiS=cindiS(~isnan(cindiS))
 % PLOT
 figure('Color','w')
 plot(rdist,cindi,'.r','Markersize',20)
-hold on, %plot(rdist,cwide,'.k','Markersize',20)
+hold on, plot(rdist,cwide,'.k','Markersize',20)
 
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
