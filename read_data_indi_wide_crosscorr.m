@@ -234,15 +234,14 @@ title([ 'p= ' num2str(p)])
 % Spike to spike correlation
 
 % Ignore very close neurons. It seems to be screwing with the slope
-use_idx = find(rdist2 > 10); % Greater than 10um between neuron pairs
-rdist2 = rdist2(use_idx);
-cindiS = cindiS(use_idx);
-cwideS = cwideS(use_idx);
+% use_idx = find(rdist2 > 10); % Greater than 10um between neuron pairs
+% rdist2 = rdist2(use_idx);
+% cindiS = cindiS(use_idx);
+% cwideS = cwideS(use_idx);
 
 figure('Color','w')
 plot(rdist2,cindiS,'.r','Markersize',20)
 hold on,plot(rdist2,cwideS,'.k','Markersize',20)
-
 fitResults1 = polyfit(rdist2,cindiS,1);
 yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-r','Linewidth',2)
@@ -251,7 +250,7 @@ yplot1 = polyval(fitResults2,rdist2);
 plot(rdist2,yplot1,'-k','Linewidth',2)
 xlabel('Distance');
 ylabel('Corr');
-legend({['indi slope=' fitResults1(1)], ['wide slope=' fitResults2(1)]});
+legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 title_string = ['Cross correlation spike-spike indi vs. wide'];
 title(title_string);
 

@@ -16,7 +16,7 @@ cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All 
 save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
 
 % Ignore the first trial across each FOV
-ignore_first = 1;
+ignore_first = 0;
 
 ses=dir('*.mat');
 
@@ -170,6 +170,24 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
+% Plot of photobleaching ratios line graph between individual DMD and Wide
+% Field
+indi_pb_trial_ave = nanmean(indiAllB, 1);
+wide_pb_trial_ave = nanmean(wideAllB, 1);
+figure;
+plot([indi_pb_trial_ave; wide_pb_trial_ave], '-', 'LineWidth', 3);
+xticks([1, 2]);
+xticklabels({'Individual DMD', 'Wide Field'});
+xlim([0.5 2.5]);
+title_string = [];
+if ignore_first == 1
+    title_string = ['Summary line plots photobleaching ratios of individual DMD and wide field without first trials'];
+else
+    title_string = ['Summary line plots photobleaching ratios of individual DMD and wide field'];
+end
+title(title_string);
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
 % Violin plot of the photo decay
 figure('Position', [300 300 450 450]);
@@ -197,7 +215,6 @@ bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7
 set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('Signal Reduction %')
-
 title_string = [];
 if ignore_first == 1
     title_string = ['Average signal decay without first trials'];
@@ -227,3 +244,8 @@ title([ 'SNR comparison p= ' num2str(p)])
 
 saveas(gcf, [save_fig_path 'SNR\Jpeg Format\Average SNR.jpg']);
 saveas(gcf, [save_fig_path 'SNR\EPS Format\Average SNR' title_string '.eps'], 'epsc');
+
+%% Plot the number of resolvable event rate between individual and wide field
+
+% TODO the will be tricky because the event rate has to be over the total
+% time of imaging and trials had different lengths
