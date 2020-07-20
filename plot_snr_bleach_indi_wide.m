@@ -16,7 +16,7 @@ cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All 
 save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
 
 % Ignore the first trial across each FOV
-ignore_first = 0;
+ignore_first = 1;
 
 ses=dir('*.mat');
 
@@ -55,6 +55,7 @@ end
 
 %% seelct matching ROI
 indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
+fov_label = {};
 for id=1:length(wideloc)
     widefile=load(ses(wideloc(id)).name);
     indifile=load(ses(indiloc(id)).name);
@@ -80,7 +81,7 @@ for id=1:length(wideloc)
   indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ]; %TODO include all rows and linearize matrix
   wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
   
-  if ignore_first == 1
+  if ignore_first == 1 && size(indifile.allresults.bleach, 1) > 1
     % Store the bleaching values except for the first trial
     indi_temp = indifile.allresults.bleach(2:end, mROI(:, 1));
     wide_temp = widefile.allresults.bleach(2:end, mROI(:, 1));
@@ -91,11 +92,14 @@ for id=1:length(wideloc)
   
   end
 
-  indiAllB = horzcat_pad(indiAllB, indi_temp(:)');
-  wideAllB = horzcat_pad(wideAllB, wide_temp(:)');
+  indiAllB = horzcat_pad(indiAllB, indi_temp(:));
+  wideAllB = horzcat_pad(wideAllB, wide_temp(:));
   %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
   %wideAllB = [wideAllB, widefile.allresults.bleach(1, :)]
   
+  % Store the FOV labels
+  fov_label = cat(2, fov_label, [indifile.allresults.fov_name ' ' indifile.allresults.type]);
+  fov_label = cat(2, fov_label, [widefile.allresults.fov_name ' ' widefile.allresults.type]);
   
   clear allIsnr
   for tr=1:size(  indifile.allresults.spike_snr,2)
@@ -132,7 +136,7 @@ saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\Average signal decay of 1s
 
 % Violin plots of photobleaching
 figure('Position', [300 300 800 750]);
-violin(horzcat_pad(indiAllB', wideAllB'), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+violin(horzcat_pad(indiAllB(:), wideAllB(:)), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
 ylabel('Photobleach ratio');
 
 title_string = [];
@@ -146,10 +150,31 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
+% Violin plot of photobleaching ratios by culture FOV
+figure;
+fov_bleach = [];
+for i=1:size(indiAllB, 2)
+    fov_bleach = horzcat_pad(fov_bleach, indiAllB(:, i));
+    fov_bleach = horzcat_pad(fov_bleach, wideAllB(:, i));
+end
+violin(fov_bleach, 'xlabel', fov_label);
+ax = gca;
+xtickangle(ax, 45);
+title_string = [];
+if ignore_first == 1
+    title_string = ['Photobleaching ratio DMD vs. Wide field by fov without first trials'];
+else
+    title_string = ['Photobleaching ratio DMD vs. Wide field by fov'];
+end
+title(title_string);
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
+
+
 % Violin plot of the photo decay
 figure('Position', [300 300 450 450]);
-indi_decay = -100.*[repmat(1, length(indiAllB), 1) - indiAllB'];
-wide_decay = -100.*[ repmat(1, length(wideAllB), 1) - wideAllB'];
+indi_decay = -100.*[repmat(1, length(indiAllB(:)), 1) - indiAllB(:)];
+wide_decay = -100.*[ repmat(1, length(wideAllB(:)), 1) - wideAllB(:)];
 violin(horzcat_pad(indi_decay, wide_decay), ...
     'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
 

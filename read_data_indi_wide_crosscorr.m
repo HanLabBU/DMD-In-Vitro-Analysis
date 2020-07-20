@@ -233,6 +233,11 @@ title([ 'p= ' num2str(p)])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
 
+% Ignore very close neurons. It seems to be screwing with the slope
+use_idx = find(rdist2 > 10); % Greater than 10um between neuron pairs
+rdist2 = rdist2(use_idx);
+cindiS = cindiS(use_idx);
+cwideS = cwideS(use_idx);
 
 figure('Color','w')
 plot(rdist2,cindiS,'.r','Markersize',20)
