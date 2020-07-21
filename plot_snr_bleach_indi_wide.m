@@ -16,7 +16,10 @@ cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All 
 save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
 
 % Ignore the first trial across each FOV
-ignore_first = 0;
+ignore_first = 1;
+
+%Time for each point
+time_per_point = 2; % ms/point
 
 ses=dir('*.mat');
 
@@ -55,6 +58,7 @@ end
 
 %% seelct matching ROI
 indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
+indi_SRate = []; wide_SRate = [];
 fov_label = {};
 for id=1:length(wideloc)
     widefile=load(ses(wideloc(id)).name);
@@ -114,6 +118,20 @@ for id=1:length(wideloc)
     indiSNR= [indiSNR; nanmean(allIsnr,2) ];
     wideSNR= [wideSNR; nanmean(allWsnr,2) ];
   
+    % Calculate the average event rate for each pattern
+    indi_spikerate_neuron = [];
+    wide_spikerate_neuron = [];
+    
+    for neuron=1:size(indifile.allresults.roaster, 1)
+        total_spikes = sum(indifile.allresults.roaster(neuron, :));
+        indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes./(size(indifile.allresults.roaster, 2)*time_per_point)];
+        total_spikes = sum(widefile.allresults.roaster(neuron, :));
+        wide_spikerate_neuron = [wide_spikerate_neuron, total_spikes./(size(widefile.allresults.roaster, 2)*time_per_point)];
+    end
+    
+    % Calculate the average spike event rate for the whole field of view
+    indi_SRate = [indi_SRate, nanmean(indi_spikerate_neuron)];
+    wide_SRate = [wide_SRate, nanmean(wide_spikerate_neuron)];
 end
 
 
@@ -249,3 +267,10 @@ saveas(gcf, [save_fig_path 'SNR\EPS Format\Average SNR' title_string '.eps'], 'e
 
 % TODO the will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
+figure;
+boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'});
+hold on;
+plot([indi_SRate; wide_SRate], '--');
+title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];
+ylabel('spikes/ms');
+title(title_string);

@@ -16,7 +16,7 @@ save_all_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Projec
 
 % Exclude trials with obvious motion artefacts
 exclude_motart = 1;
-artefact_trials = {{'Culture 5\Wide', 2}, {'Culture 24\Wide', 3}, {'Culture 23\Wide', 3} }; % {Session, <trial no>}
+artefact_trials = {{'Culture 5\Wide', 2}, {'Culture 24\Wide', 3}, {'Culture 23\Wide', 3}}; % {Session, <trial no>}
 
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses

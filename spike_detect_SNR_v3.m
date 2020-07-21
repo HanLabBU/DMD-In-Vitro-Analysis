@@ -7,7 +7,7 @@ function  result=spike_detect_SNR_v3(traces,up_threshold, down_threshold)
 FS=500; % sampling frequency
 addpath(genpath('\\engnas.bu.edu\Research\eng_research_handata\Hua-an Tseng\Code\other\eegfilt\'))
 addpath(genpath('\\ad\eng\research\eng_research_handata\EricLowet\DMD\main_analysis\'))
-plot_yes=0; % TODO plot here to show traces
+plot_yes=1; % Plot here to show traces
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;
     end
@@ -178,11 +178,13 @@ rast(rast==0)=NaN;
 % plot(rast(ind,:) + ind ,'.k'); hold on,
 % end
 
+disp('Show figure');
+
 figure('COlor','w')
 subplot(1,3,1:2)
 for ind=1:size(result.orig_trace,1)
 plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,
-hold on,plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
+hold on, %plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
 end;axis tight;xlabel('Time'); ylabel('neuron')
 subplot(1,3,3)
 clear SNR_val
