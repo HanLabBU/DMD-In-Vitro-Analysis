@@ -168,7 +168,7 @@ for ind2=1:length(nsel)
     if ind1<ind2
    if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
     [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
-    c1=c(95:105) % This is the +/- around 0 from the 200 parameter, the offset
+    c1=c(95:105); % This is the +/- around 0 from the 200 parameter, the offset
     mean_corr = mean(c1); % Use mean
     allCmaxW(ind1,ind2)= mean_corr;
      allCmaxW(ind2,ind1)= mean_corr;
@@ -200,7 +200,7 @@ cwideS=cwideS(~isnan(cindiS))
 cindiS=cindiS(~isnan(cindiS))
 %allCx=allCx(~isnan(cindiS),:)
 
-% Ignore very close neurons. It seems to be screwing with the slope
+% Ignore very close neurons. This was a condition for selecting matching neurons between indi and wide 
 use_idx = find(rdist2 > 8); % Greater than 8um between neuron pairs
 rdist2 = rdist2(use_idx);
 cindiS = cindiS(use_idx);
@@ -211,7 +211,7 @@ rdist = rdist(use_idx);
 cindi = cindi(use_idx);
 cwide = cwide(use_idx);
 
-
+%% Plot all of the data
 % PLOT subthreshold cross correlation
 figure('Color','w')
 plot(rdist,cindi,'.r','Markersize',20)
@@ -263,6 +263,28 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
+figure;
+bin_size = 30; % In um
+max_dist = max(rdist2);
+indi_corr_bins = [];
+wide_corr_bins = [];
+bin_labels = {};
+for i=0:bin_size:max_dist
+    corr_idx = find(rdist2 > i & rdist2 < i+bin_size);
+    indi_corr_bins = [indi_corr_bins, nanmean(cindiS(corr_idx))];
+    wide_corr_bins = [wide_corr_bins, nanmean(cwideS(corr_idx))];
+    bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size)]);
+end
+X = categorical(bin_labels);
+X = reordercats(X, bin_labels);
+bar(X, [indi_corr_bins', wide_corr_bins']);
+
+ylabel('Pearson''s correlation');
+title_string = ['Spike-Spike cross correlation over distance'];
+title(title_string);
+
+
+%{
 [h,p,ci,stats] = ttest(cindiS,cwideS)
 figure('COlor','w','Position', [ 300 300 200 200])
 V1=nanmean(cindiS);V1s=(std(cindiS)./sqrt(length(cindiS)));
@@ -272,8 +294,8 @@ set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('corr max')
 xlim([ 0.5 2.5]); %ylim([0  20])
-title([ 'p= ' num2str(p)])
-
+title([ 'Spike-Spike bar graph p= ' num2str(p)])
+%}
 
 
 
