@@ -258,10 +258,11 @@ set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
 errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('Spike SNR')
 xlim([ 0.5 2.5]); ylim([3 5])
-title([ 'SNR comparison p= ' num2str(p)])
+title_string = ['Average SNR comparison p= ' num2str(p)];
+title(title_string);
 
-saveas(gcf, [save_fig_path 'SNR\Jpeg Format\Average SNR.jpg']);
-saveas(gcf, [save_fig_path 'SNR\EPS Format\Average SNR' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'SNR\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'SNR\EPS Format\' title_string '.eps'], 'epsc');
 
 %% Plot the number of resolvable event rate between individual and wide field
 
@@ -274,3 +275,7 @@ plot([indi_SRate; wide_SRate], '--');
 title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];
 ylabel('spikes/ms');
 title(title_string);
+
+
+saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
