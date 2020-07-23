@@ -214,23 +214,53 @@ cwide = cwide(use_idx);
 %% Plot all of the data
 % PLOT subthreshold cross correlation
 figure('Color','w')
-plot(rdist,cindi,'.r','Markersize',20)
-hold on, plot(rdist,cwide,'.k','Markersize',20)
+plot(rdist,cindi,'.r','Markersize',10)
+hold on, plot(rdist,cwide,'.k','Markersize',10)
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-r','Linewidth',2)
 fitResults2 = polyfit(rdist,cwide,1);
 yplot1 = polyval(fitResults2,rdist);
 plot(rdist,yplot1,'-k','Linewidth',2)
-xlabel('Distance')
+xlabel('Distance (\mum)')
 ylabel('Corr')
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 
 title_string = ['Cross correlation subthreshold (Vm) indi vs. wide'];
 title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
+% Plot subthreshold cross correlation over binned distance
+bin_size = 30; % In um
+max_dist = max(rdist);
+indi_corr_bins = [];
+wide_corr_bins = [];
+bin_labels = {};
+for i=0:bin_size:max_dist
+    corr_idx = find(rdist > i & rdist < i+bin_size);
+    indi_corr_bins = [indi_corr_bins, nanmean(cindi(corr_idx))];
+    wide_corr_bins = [wide_corr_bins, nanmean(cwide(corr_idx))];
+    bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size)]);
+end
+X = categorical(bin_labels);
+X = reordercats(X, bin_labels);
+figure;
+bar(X, [indi_corr_bins', wide_corr_bins']);
+legend({'Individual DMD', 'Wide Field'});
+ylabel('Pearson''s correlation');
+xlabel('Distance (\mum)')
+title_string = ['Subthreshold Vm cross correlation over binned distance'];
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+
+%{
+% Plot subthreshold cross correlations
 [h,p,ci,stats] = ttest(cindi,cwide)
 figure('COlor','w','Position', [ 300 300 200 200])
 V1=nanmean(cindi);V1s=(std(cindi)./sqrt(length(cindi)));
@@ -241,20 +271,21 @@ errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
 axis tight;ylabel('corr max')
 xlim([ 0.5 2.5]); %ylim([0  20])
 title([ 'p= ' num2str(p)])
+%}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
 
 figure('Color','w')
-plot(rdist2,cindiS,'.r','Markersize',20)
-hold on,plot(rdist2,cwideS,'.k','Markersize',20)
+plot(rdist2,cindiS,'.r','Markersize',10)
+hold on,plot(rdist2,cwideS,'.k','Markersize',10)
 fitResults1 = polyfit(rdist2,cindiS,1);
 yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-r','Linewidth',2)
 fitResults2 = polyfit(rdist2,cwideS,1);
 yplot1 = polyval(fitResults2,rdist2);
 plot(rdist2,yplot1,'-k','Linewidth',2)
-xlabel('Distance');
+xlabel('Distance (\mum)');
 ylabel('Corr');
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 title_string = ['Cross correlation spike-spike indi vs. wide'];
@@ -262,9 +293,9 @@ title(title_string);
 
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
-figure;
-bin_size = 30; % In um
+% Plot spike-spike correlations over binned distances
 max_dist = max(rdist2);
 indi_corr_bins = [];
 wide_corr_bins = [];
@@ -277,12 +308,17 @@ for i=0:bin_size:max_dist
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
+figure;
 bar(X, [indi_corr_bins', wide_corr_bins']);
-
+legend({'Individual DMD', 'Wide Field'});
 ylabel('Pearson''s correlation');
-title_string = ['Spike-Spike cross correlation over distance'];
+xlabel('Distance (\mum)')
+title_string = ['Spike-Spike cross correlation over binned distance'];
 title(title_string);
 
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
 %{
 [h,p,ci,stats] = ttest(cindiS,cwideS)
