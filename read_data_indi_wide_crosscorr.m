@@ -211,9 +211,10 @@ rdist = rdist(use_idx);
 cindi = cindi(use_idx);
 cwide = cwide(use_idx);
 
+
 %% Plot all of the data
 % PLOT subthreshold cross correlation
-figure('Color','w')
+figure('Color','w', 'Renderer', 'painters')
 plot(rdist,cindi,'.r','Markersize',10)
 hold on, plot(rdist,cwide,'.k','Markersize',10)
 fitResults1 = polyfit(rdist,cindi,1);
@@ -246,7 +247,7 @@ for i=0:bin_size:max_dist
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
-figure;
+figure('Renderer', 'painters');
 bar(X, [indi_corr_bins', wide_corr_bins']);
 legend({'Individual DMD', 'Wide Field'});
 ylabel('Pearson''s correlation');
@@ -258,6 +259,63 @@ saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']
 
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+
+%--Perform shuffling of the data to test significance in the calculated regression lines
+num_reshuffles = 1000;
+indi_shuf_slopes = [];
+wide_shuf_slopes = [];
+
+% Shuffle subthreshold trace identities
+dist_corr_pairs = [cindi'; cwide']; 
+for i=1:num_reshuffles
+    % Assign random individual correlations
+    % Logical indexing is by column, so the cindis are transposed
+    indi_idx = logical(randi([0 1], [1 length(rdist)]));
+    indi_idx = [indi_idx; ~indi_idx];
+    wide_idx = ~indi_idx;
+       
+	indi_shuff_cor = dist_corr_pairs(indi_idx);
+    wide_shuff_cor = dist_corr_pairs(wide_idx);
+        
+    % Calculate best fit slope and store
+    indi_fit = polyfit(rdist, indi_shuff_cor,1);
+    wide_fit = polyfit(rdist, wide_shuff_cor,1);
+    
+    indi_shuf_slopes = [indi_shuf_slopes, indi_fit(1)];
+    wide_shuf_slopes = [wide_shuf_slopes, wide_fit(1)];
+end
+
+% Plot the shuffled distributions of the correlations over distance
+figure('Renderer', 'painters', 'Position', [0 0 1700 700]);
+subplot(1, 2, 1);
+xline(fitResults1(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(indi_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
+hold on;
+[counts, bin_centers] = hist(indi_shuf_slopes);
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled'});
+title('Individual Shuffled correlations');
+
+subplot(1, 2, 2);
+[counts, bin_centers] = hist(wide_shuf_slopes);
+xline(fitResults2(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(wide_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
+hold on;
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled'});
+title('Wide Field Shuffled correlations');
+
+% Test for significance
+% Will just try 3 standard deviations for now
+indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes)
+indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes)
+
+wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes)
+wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes)
+
+
 
 %{
 % Plot subthreshold cross correlations
@@ -276,7 +334,7 @@ title([ 'p= ' num2str(p)])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
 
-figure('Color','w')
+figure('Color','w', 'Renderer', 'painters')
 plot(rdist2,cindiS,'.r','Markersize',10)
 hold on,plot(rdist2,cwideS,'.k','Markersize',10)
 fitResults1 = polyfit(rdist2,cindiS,1);
@@ -308,7 +366,8 @@ for i=0:bin_size:max_dist
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
-figure;
+
+figure('Renderer', 'painters');
 bar(X, [indi_corr_bins', wide_corr_bins']);
 legend({'Individual DMD', 'Wide Field'});
 ylabel('Pearson''s correlation');
@@ -319,6 +378,53 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+
+
+
+%% Perform shuffling of the data to test significance in the calculated regression lines
+num_reshuffles = 1000;
+
+indi_shuf_slopes = [];
+wide_shuf_slopes = [];
+
+% Plan would be to have the column as follows: | distance | individual correlation | wide field correlation | 
+% Randomize 1 or 2 as the index for either individual or wide field, and then assign the sister correlation with the other pattern
+% This way no one pattern can have two correlations at the same distance
+
+% Shuffle subthreshold trace identities
+dist_corr_pairs = [cindi'; cwide']; 
+for i=1:num_reshuffles
+    % Assign random individual correlations
+    % Logical indexing is by column, so the cindis and such may need to
+    % be transposed here
+    indi_idx = logical(randi([0 1], [1 length(rdist)]));
+    indi_idx = [indi_idx; ~indi_idx];
+    wide_idx = ~indi_idx;
+       
+	indi_shuff_cor = dist_corr_pairs(indi_idx);
+    wide_shuff_cor = dist_corr_pairs(wide_idx);
+        
+    
+    indi_fit = polyfit(rdist, indi_shuff_cor,1);
+    wide_fit = polyfit(rdist, wide_shuff_cor,1);
+    
+    indi_shuf_slopes = [indi_shuf_slopes, indi_fit(1)];
+    wide_shuf_slopes = [wide_shuf_slopes, wide_fit(1)];
+end
+
+% DEBUG
+size(indi_shuf_slopes)
+size(wide_shuf_slopes)
+
+% Plot the shuffled distributions of the correlations over distance
+figure('Renderer', 'painters');
+subplot(1, 2, 1);
+hist(indi_shuf_slopes);
+title('Individual Shuffled correlations');
+subplot(1, 2, 2);
+hist(wide_shuf_slopes);
+title('Wide Field Shuffled correlations');
+
 
 %{
 [h,p,ci,stats] = ttest(cindiS,cwideS)
