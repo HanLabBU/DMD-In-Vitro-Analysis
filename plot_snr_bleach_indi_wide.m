@@ -18,8 +18,8 @@ save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD
 % Ignore the first trial across each FOV
 ignore_first = 1;
 
-%Time for each point
-time_per_point = 2; % ms/point
+% Original Sampling Frequency
+sample_frequency = 500; % Hz
 
 ses=dir('*.mat');
 
@@ -124,9 +124,9 @@ for id=1:length(wideloc)
     
     for neuron=1:size(indifile.allresults.roaster, 1)
         total_spikes = sum(indifile.allresults.roaster(neuron, :));
-        indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes./(size(indifile.allresults.roaster, 2)*time_per_point)];
+        indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes*sample_frequency./(size(indifile.allresults.roaster, 2))];
         total_spikes = sum(widefile.allresults.roaster(neuron, :));
-        wide_spikerate_neuron = [wide_spikerate_neuron, total_spikes./(size(widefile.allresults.roaster, 2)*time_per_point)];
+        wide_spikerate_neuron = [wide_spikerate_neuron, total_spikes*sample_frequency./(size(widefile.allresults.roaster, 2))];
     end
     
     % Calculate the average spike event rate for the whole field of view
@@ -135,22 +135,21 @@ for id=1:length(wideloc)
 end
 
 
-%% PLOT the bleaching average between DMD and Wide Field
+%% PLOT the bleaching decay boxplots between DMD and Wide Field
 figure('COlor','w'),plot(indiB,'r'); hold on,plot(wideB,'k')
 legend indi wide
 [h,p,ci,stats] = ttest(indiB,wideB)
 
-figure('COlor','w','Position', [ 300 300 300 450])
-V1=((1-nanmean(indiB)).*-1).*100;V1s=(std(indiB)./sqrt(length(indiB))).*100;
-V2=((1-nanmean(wideB)).*-1).*100;V2s=(std(wideB)./sqrt(length(wideB))).*100;
-bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
-set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
-errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
-axis tight;ylabel('signal reduction %')
-xlim([ 0.5 2.5]); %ylim([0  20])
-title([ 'Average of signal decay 1st trials p= ' num2str(p)])
-saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\Average signal decay of 1st trials of DMD and Wide Field.jpg']);
-saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\Average signal decay of 1st trials of DMD and Wide Field.eps'], 'epsc');
+M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100
+figure('COlor','w','Renderer', 'painters')
+boxplot( M   , {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','*k')
+title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Photobleaching\SVG Format\' title_string '.svg']);
+
 
 % Violin plots of photobleaching
 figure('Position', [300 300 800 750]);
@@ -245,37 +244,35 @@ saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
 
-% Plot the SNRs
-figure('COlor','w'),,plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
+% Plot the boxplot SNRs
+figure('COlor','w', 'Renderer', 'painters'),plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
 legend indi wide
 [h,p,ci,stats] = ttest(indiSNR,wideSNR)
 
-figure('COlor','w','Position', [ 300 300 200 200])
-V1=nanmean(indiSNR);V1s=std(indiSNR)./sqrt(length(indiSNR));
-V2=nanmean(wideSNR);V2s=std(wideSNR)./sqrt(length(indiSNR));
-bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
-set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
-errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
-axis tight;ylabel('Spike SNR')
-xlim([ 0.5 2.5]); ylim([3 5])
-title_string = ['Average SNR comparison p= ' num2str(p)];
+figure('COlor','w')
+boxplot([indiSNR, wideSNR], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','*k');
+title_string = ['Boxplots of SNR p= ' num2str(p)];
 title(title_string);
 
 saveas(gcf, [save_fig_path 'SNR\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'SNR\EPS Format\' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
+
 
 %% Plot the number of resolvable event rate between individual and wide field
 
 % TODO the will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
-figure;
-boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'});
-hold on;
-plot([indi_SRate; wide_SRate], '--');
+figure('Renderer', 'painters');
+boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','*k');
+%hold on;
+%plot([indi_SRate; wide_SRate], '--');
 title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];
-ylabel('spikes/ms');
+ylabel('Spike Rate');
 title(title_string);
 
 
 saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Event Rate\SVG Format\' title_string '.svg']);
+

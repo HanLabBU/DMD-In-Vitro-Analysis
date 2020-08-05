@@ -180,7 +180,7 @@ rast(rast==0)=NaN;
 
 disp('Show figure');
 
-figure('COlor','w')
+figure('Color','w', 'Renderer', 'painters');
 subplot(1,3,1:2)
 for ind=1:size(result.orig_trace,1)
 plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,

@@ -12,7 +12,7 @@ addpath('.');
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
 % Final figure folder
-save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
+save_fig_path = '\\engnas.bu.edu\research\eng_research_hanlab\DMD Paper\In Vitro Plots\';
 
 % Scripts for needed functions
 addpath('\\ad\eng\research\eng_research_handata\EricLowet\DMD\main_analysis\');
@@ -223,7 +223,6 @@ plot(rdist,yplot1,'-r','Linewidth',2)
 fitResults2 = polyfit(rdist,cwide,1);
 yplot1 = polyval(fitResults2,rdist);
 plot(rdist,yplot1,'-k','Linewidth',2)
-xlabel('Distance (\mum)')
 ylabel('Corr')
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 
@@ -234,29 +233,43 @@ saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg'])
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 % Plot subthreshold cross correlation over binned distance
-bin_size = 30; % In um
-max_dist = max(rdist);
+bin_size = 50; % In um
+last_bin = 180;
 indi_corr_bins = [];
 wide_corr_bins = [];
+all_bins = [];
 bin_labels = {};
-for i=0:bin_size:max_dist
-    corr_idx = find(rdist > i & rdist < i+bin_size);
-    indi_corr_bins = [indi_corr_bins, nanmean(cindi(corr_idx))];
-    wide_corr_bins = [wide_corr_bins, nanmean(cwide(corr_idx))];
-    bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size)]);
+for i=0:bin_size:last_bin
+    
+    % Bin all pairs that are greater than 180 um
+    if i >= last_bin
+        corr_idx = find(rdist >= i);
+    else
+        corr_idx = find(rdist >= i & rdist < i+bin_size);
+    end
+    indi_corr_bins = horzcat_pad(indi_corr_bins, cindi(corr_idx));
+    wide_corr_bins = horzcat_pad(wide_corr_bins, cwide(corr_idx));
+    
+    % Store all of the correlation distributions in one matrix
+    all_bins = horzcat_pad(all_bins, cindi(corr_idx));
+    all_bins = horzcat_pad(all_bins, cwide(corr_idx));
+    
+    if i >= last_bin
+        bin_labels = cat(2, bin_labels, ['>=' num2str(i)]);
+    else
+        bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
+    end
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
-figure('Renderer', 'painters');
-bar(X, [indi_corr_bins', wide_corr_bins']);
-legend({'Individual DMD', 'Wide Field'});
+figure('Renderer', 'painters', 'Position', [0 0 900 800]);
+boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'},...
+        'SecondaryLabels', bin_labels);
 ylabel('Pearson''s correlation');
-xlabel('Distance (\mum)')
-title_string = ['Subthreshold Vm cross correlation over binned distance'];
+title_string = ['Subthreshold Vm cross correlation over binned distance ' num2str(bin_size)];
 title(title_string);
 
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
@@ -264,6 +277,7 @@ saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'],
 num_reshuffles = 1000;
 indi_shuf_slopes = [];
 wide_shuf_slopes = [];
+slope_diff = [];
 
 % Shuffle subthreshold trace identities
 dist_corr_pairs = [cindi'; cwide']; 
@@ -283,7 +297,16 @@ for i=1:num_reshuffles
     
     indi_shuf_slopes = [indi_shuf_slopes, indi_fit(1)];
     wide_shuf_slopes = [wide_shuf_slopes, wide_fit(1)];
+    
+    % Store the slope difference indi - wide
+    slope_diff = [slope_diff, indi_fit(1) - wide_fit(1)];
 end
+
+indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes)
+indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes)
+
+wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes)
+wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes)
 
 % Plot the shuffled distributions of the correlations over distance
 figure('Renderer', 'painters', 'Position', [0 0 1700 700]);
@@ -292,9 +315,12 @@ xline(fitResults1(1), 'LineWidth', 2, 'Color', 'red');
 hold on;
 xline(nanmean(indi_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
 hold on;
+xline(indi_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(indi_bot, 'LineWidth', 2, 'Color', 'green');
 [counts, bin_centers] = hist(indi_shuf_slopes);
 bar(bin_centers, counts, 'BarWidth', 1);
-legend({'Observed','Mean shuffled'});
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Individual Shuffled correlations');
 
 subplot(1, 2, 2);
@@ -303,19 +329,34 @@ xline(fitResults2(1), 'LineWidth', 2, 'Color', 'red');
 hold on;
 xline(nanmean(wide_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
 hold on;
+xline(wide_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(wide_bot, 'LineWidth', 2, 'Color', 'green');
+hold on;
 bar(bin_centers, counts, 'BarWidth', 1);
-legend({'Observed','Mean shuffled'});
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Wide Field Shuffled correlations');
 
-% Test for significance
-% Will just try 3 standard deviations for now
-indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes)
-indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes)
+sgtitle('Shuffling subthreshold Vm correlations');
 
-wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes)
-wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes)
+% Plot the shuffled slope differences
+diff_top = nanmean(slope_diff) + 3*nanstd(slope_diff);
+diff_bot = nanmean(slope_diff) - 3*nanstd(slope_diff);
+figure('Renderer', 'painters');
+xline(fitResults1(1) - fitResults2(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(slope_diff), 'LineWidth', 2, 'Color', 'black');
+hold on;
+xline(diff_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(diff_bot, 'LineWidth', 2, 'Color', 'green');
+hold on;
+[counts, bin_centers] = hist(slope_diff);
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
+title('Shuffled Slope Difference From Subthreshold Vm (Individual - Wide Field)');
 
-
+%TODO save the shuffled plots
 
 %{
 % Plot subthreshold cross correlations
@@ -354,76 +395,127 @@ saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'],
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
 % Plot spike-spike correlations over binned distances
-max_dist = max(rdist2);
 indi_corr_bins = [];
 wide_corr_bins = [];
+all_bins = [];
 bin_labels = {};
-for i=0:bin_size:max_dist
-    corr_idx = find(rdist2 > i & rdist2 < i+bin_size);
-    indi_corr_bins = [indi_corr_bins, nanmean(cindiS(corr_idx))];
-    wide_corr_bins = [wide_corr_bins, nanmean(cwideS(corr_idx))];
-    bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size)]);
+for i=0:bin_size:last_bin
+    if i >= last_bin
+        corr_idx = find(rdist2 >= i);
+    else
+        corr_idx = find(rdist2 >= i & rdist2 < i+bin_size);
+    end
+    indi_corr_bins = horzcat_pad(indi_corr_bins, cindiS(corr_idx));
+    wide_corr_bins = horzcat_pad(wide_corr_bins, cwideS(corr_idx));
+    
+    % Store each FOVs distribution as column vectors
+    all_bins = horzcat_pad(all_bins, cindiS(corr_idx));
+    all_bins = horzcat_pad(all_bins, cwideS(corr_idx));
+    
+    
+    if i >= last_bin
+        bin_labels = cat(2, bin_labels, ['>=' num2str(i)]);
+    else
+        bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
+    end
+    
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
 
-figure('Renderer', 'painters');
-bar(X, [indi_corr_bins', wide_corr_bins']);
-legend({'Individual DMD', 'Wide Field'});
+figure('Renderer', 'painters', 'Position', [0 0 900 800]);
+boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'}, 'SecondaryLabels', bin_labels);
 ylabel('Pearson''s correlation');
-xlabel('Distance (\mum)')
-title_string = ['Spike-Spike cross correlation over binned distance'];
+title_string = ['Spike-Spike cross correlation over binned distance ' num2str(bin_size)];
 title(title_string);
 
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
-
-
-%% Perform shuffling of the data to test significance in the calculated regression lines
-num_reshuffles = 1000;
-
+%--Perform shuffling of the data to test significance in the calculated regression lines
 indi_shuf_slopes = [];
 wide_shuf_slopes = [];
+slope_diff = [];
 
-% Plan would be to have the column as follows: | distance | individual correlation | wide field correlation | 
-% Randomize 1 or 2 as the index for either individual or wide field, and then assign the sister correlation with the other pattern
-% This way no one pattern can have two correlations at the same distance
-
-% Shuffle subthreshold trace identities
-dist_corr_pairs = [cindi'; cwide']; 
+% Shuffle spike-spike correlation identities
+dist_corr_pairs = [cindiS'; cwideS']; 
 for i=1:num_reshuffles
     % Assign random individual correlations
-    % Logical indexing is by column, so the cindis and such may need to
-    % be transposed here
-    indi_idx = logical(randi([0 1], [1 length(rdist)]));
+    % Logical indexing is by column, so the cindis are transposed
+    indi_idx = logical(randi([0 1], [1 length(rdist2)]));
     indi_idx = [indi_idx; ~indi_idx];
     wide_idx = ~indi_idx;
        
 	indi_shuff_cor = dist_corr_pairs(indi_idx);
     wide_shuff_cor = dist_corr_pairs(wide_idx);
         
-    
-    indi_fit = polyfit(rdist, indi_shuff_cor,1);
-    wide_fit = polyfit(rdist, wide_shuff_cor,1);
+    % Calculate best fit slope and store
+    indi_fit = polyfit(rdist2, indi_shuff_cor,1);
+    wide_fit = polyfit(rdist2, wide_shuff_cor,1);
     
     indi_shuf_slopes = [indi_shuf_slopes, indi_fit(1)];
     wide_shuf_slopes = [wide_shuf_slopes, wide_fit(1)];
+    
+    % Store the slope difference indi - wide
+    slope_diff = [slope_diff, indi_fit(1) - wide_fit(1)];
 end
 
-% DEBUG
-size(indi_shuf_slopes)
-size(wide_shuf_slopes)
+indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes)
+indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes)
+
+wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes)
+wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes)
 
 % Plot the shuffled distributions of the correlations over distance
-figure('Renderer', 'painters');
+figure('Renderer', 'painters', 'Position', [0 0 1700 700]);
 subplot(1, 2, 1);
-hist(indi_shuf_slopes);
+xline(fitResults1(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(indi_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
+hold on;
+xline(indi_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(indi_bot, 'LineWidth', 2, 'Color', 'green');
+[counts, bin_centers] = hist(indi_shuf_slopes);
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Individual Shuffled correlations');
+
 subplot(1, 2, 2);
-hist(wide_shuf_slopes);
+[counts, bin_centers] = hist(wide_shuf_slopes);
+xline(fitResults2(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(wide_shuf_slopes), 'LineWidth', 2, 'Color', 'black');
+hold on;
+xline(wide_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(wide_bot, 'LineWidth', 2, 'Color', 'green');
+hold on;
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Wide Field Shuffled correlations');
+
+sgtitle('Shuffling Spike-Spike correlations');
+
+% Plot the shuffled slope differences
+diff_top = nanmean(slope_diff) + 3*nanstd(slope_diff);
+diff_bot = nanmean(slope_diff) - 3*nanstd(slope_diff);
+figure('Renderer', 'painters');
+xline(fitResults1(1) - fitResults2(1), 'LineWidth', 2, 'Color', 'red');
+hold on;
+xline(nanmean(slope_diff), 'LineWidth', 2, 'Color', 'black');
+hold on;
+xline(diff_top, 'LineWidth', 2, 'Color', 'green');
+hold on;
+xline(diff_bot, 'LineWidth', 2, 'Color', 'green');
+hold on;
+[counts, bin_centers] = hist(slope_diff);
+bar(bin_centers, counts, 'BarWidth', 1);
+legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
+title('Shuffled Slope Difference from spike-spike (Individual - Wide Field)');
+
+%TODO save the shuffled plots
 
 
 %{
