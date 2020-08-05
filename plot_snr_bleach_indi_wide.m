@@ -142,7 +142,7 @@ legend indi wide
 
 M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100
 figure('COlor','w','Renderer', 'painters')
-boxplot( M   , {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','*k')
+boxplot( M   , {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
 title(title_string);
 
@@ -250,7 +250,7 @@ legend indi wide
 [h,p,ci,stats] = ttest(indiSNR,wideSNR)
 
 figure('COlor','w')
-boxplot([indiSNR, wideSNR], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','*k');
+boxplot([indiSNR, wideSNR], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
 title_string = ['Boxplots of SNR p= ' num2str(p)];
 title(title_string);
 
@@ -264,7 +264,7 @@ saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
 % TODO the will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
 figure('Renderer', 'painters');
-boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','*k');
+boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
 %hold on;
 %plot([indi_SRate; wide_SRate], '--');
 title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];

@@ -216,13 +216,13 @@ cwide = cwide(use_idx);
 % PLOT subthreshold cross correlation
 figure('Color','w', 'Renderer', 'painters')
 plot(rdist,cindi,'.r','Markersize',10)
-hold on, plot(rdist,cwide,'.k','Markersize',10)
+hold on, plot(rdist,cwide,'.b','Markersize',10)
 fitResults1 = polyfit(rdist,cindi,1);
 yplot1 = polyval(fitResults1,rdist);
 plot(rdist,yplot1,'-r','Linewidth',2)
 fitResults2 = polyfit(rdist,cwide,1);
 yplot1 = polyval(fitResults2,rdist);
-plot(rdist,yplot1,'-k','Linewidth',2)
+plot(rdist,yplot1,'-b','Linewidth',2)
 ylabel('Corr')
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 
@@ -233,7 +233,7 @@ saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg'])
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 % Plot subthreshold cross correlation over binned distance
-bin_size = 50; % In um
+bin_size = 30; % In um
 last_bin = 180;
 indi_corr_bins = [];
 wide_corr_bins = [];
@@ -259,12 +259,16 @@ for i=0:bin_size:last_bin
     else
         bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
     end
+    bin_labels = cat(2, bin_labels, ['']);
+
 end
 X = categorical(bin_labels);
 X = reordercats(X, bin_labels);
 figure('Renderer', 'painters', 'Position', [0 0 900 800]);
-boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'},...
-        'SecondaryLabels', bin_labels);
+boxplot(all_bins, bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
+%boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'},...
+%        'SecondaryLabels', bin_labels);
+
 ylabel('Pearson''s correlation');
 title_string = ['Subthreshold Vm cross correlation over binned distance ' num2str(bin_size)];
 title(title_string);
@@ -272,6 +276,49 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+
+
+% Plot spike-spike correlations over binned distances
+indi_corr_bins = [];
+wide_corr_bins = [];
+all_bins = [];
+bin_labels = {};
+for i=0:bin_size:last_bin
+    if i >= last_bin
+        corr_idx = find(rdist2 >= i);
+    else
+        corr_idx = find(rdist2 >= i & rdist2 < i+bin_size);
+    end
+    indi_corr_bins = horzcat_pad(indi_corr_bins, cindiS(corr_idx));
+    wide_corr_bins = horzcat_pad(wide_corr_bins, cwideS(corr_idx));
+    
+    % Store each FOVs distribution as column vectors
+    all_bins = horzcat_pad(all_bins, cindiS(corr_idx));
+    all_bins = horzcat_pad(all_bins, cwideS(corr_idx));
+    
+    
+    if i >= last_bin
+        bin_labels = cat(2, bin_labels, ['>=' num2str(i)]);
+    else
+        bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
+    end
+    bin_labels = cat(2, bin_labels, ['']);
+    
+end
+X = categorical(bin_labels);
+X = reordercats(X, bin_labels);
+
+figure('Renderer', 'painters', 'Position', [0 0 900 800]);
+boxplot(all_bins, bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
+%boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'}, 'SecondaryLabels', bin_labels);
+ylabel('Pearson''s correlation');
+title_string = ['Spike-Spike cross correlation over binned distance ' num2str(bin_size)];
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+
 
 %--Perform shuffling of the data to test significance in the calculated regression lines
 num_reshuffles = 1000;
@@ -377,13 +424,13 @@ title([ 'p= ' num2str(p)])
 
 figure('Color','w', 'Renderer', 'painters')
 plot(rdist2,cindiS,'.r','Markersize',10)
-hold on,plot(rdist2,cwideS,'.k','Markersize',10)
+hold on,plot(rdist2,cwideS,'.b','Markersize',10)
 fitResults1 = polyfit(rdist2,cindiS,1);
 yplot1 = polyval(fitResults1,rdist2);
 plot(rdist2,yplot1,'-r','Linewidth',2)
 fitResults2 = polyfit(rdist2,cwideS,1);
 yplot1 = polyval(fitResults2,rdist2);
-plot(rdist2,yplot1,'-k','Linewidth',2)
+plot(rdist2,yplot1,'-b','Linewidth',2)
 xlabel('Distance (\mum)');
 ylabel('Corr');
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
@@ -394,44 +441,6 @@ saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
-% Plot spike-spike correlations over binned distances
-indi_corr_bins = [];
-wide_corr_bins = [];
-all_bins = [];
-bin_labels = {};
-for i=0:bin_size:last_bin
-    if i >= last_bin
-        corr_idx = find(rdist2 >= i);
-    else
-        corr_idx = find(rdist2 >= i & rdist2 < i+bin_size);
-    end
-    indi_corr_bins = horzcat_pad(indi_corr_bins, cindiS(corr_idx));
-    wide_corr_bins = horzcat_pad(wide_corr_bins, cwideS(corr_idx));
-    
-    % Store each FOVs distribution as column vectors
-    all_bins = horzcat_pad(all_bins, cindiS(corr_idx));
-    all_bins = horzcat_pad(all_bins, cwideS(corr_idx));
-    
-    
-    if i >= last_bin
-        bin_labels = cat(2, bin_labels, ['>=' num2str(i)]);
-    else
-        bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
-    end
-    
-end
-X = categorical(bin_labels);
-X = reordercats(X, bin_labels);
-
-figure('Renderer', 'painters', 'Position', [0 0 900 800]);
-boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'}, 'SecondaryLabels', bin_labels);
-ylabel('Pearson''s correlation');
-title_string = ['Spike-Spike cross correlation over binned distance ' num2str(bin_size)];
-title(title_string);
-
-saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
-saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
 %--Perform shuffling of the data to test significance in the calculated regression lines
 indi_shuf_slopes = [];

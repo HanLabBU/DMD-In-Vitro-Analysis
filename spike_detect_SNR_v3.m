@@ -183,7 +183,9 @@ disp('Show figure');
 figure('Color','w', 'Renderer', 'painters');
 subplot(1,3,1:2)
 for ind=1:size(result.orig_trace,1)
-plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,
+%TODO change color to be consistent with indiviudal - red, wide field -
+%blue
+plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on, 
 hold on, %plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
 end;axis tight;xlabel('Time'); ylabel('neuron')
 subplot(1,3,3)
