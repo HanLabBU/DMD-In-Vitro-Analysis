@@ -13,7 +13,8 @@ addpath('.');
 cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
 
 % Folder to save figures
-save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
+%save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
+save_fig_path = '\\engnas.bu.edu\research\eng_research_hanlab\DMD Paper\In Vitro Plots\';
 
 % Ignore the first trial across each FOV
 ignore_first = 1;

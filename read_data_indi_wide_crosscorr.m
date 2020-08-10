@@ -9,7 +9,8 @@ clear all;
 addpath('.');
 
 % In vitro path
-cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+%cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+cd('D:\DMD Analysis Temp Data\');
 
 % Final figure folder
 save_fig_path = '\\engnas.bu.edu\research\eng_research_hanlab\DMD Paper\In Vitro Plots\';
@@ -191,13 +192,13 @@ cindi=cindi(~isnan(cwide));
 rdist=rdist(~isnan(cwide));
 cwide=cwide(~isnan(cwide));
 
-cindiS=cindiS(~isnan(cwideS))
-%allCx=allCx(~isnan(cwideS),:)
-rdist2=rdist2(~isnan(cwideS))
-cwideS=cwideS(~isnan(cwideS))
-rdist2=rdist2(~isnan(cindiS))
-cwideS=cwideS(~isnan(cindiS))
-cindiS=cindiS(~isnan(cindiS))
+cindiS=cindiS(~isnan(cwideS));
+%allCx=allCx(~isnan(cwideS),:);
+rdist2=rdist2(~isnan(cwideS));
+cwideS=cwideS(~isnan(cwideS));
+rdist2=rdist2(~isnan(cindiS));
+cwideS=cwideS(~isnan(cindiS));
+cindiS=cindiS(~isnan(cindiS));
 %allCx=allCx(~isnan(cindiS),:)
 
 % Ignore very close neurons. This was a condition for selecting matching neurons between indi and wide 
@@ -232,11 +233,22 @@ saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
+%  Kolmogorov-Smirnov test for difference in the two correlations over
+%  distance
+disp('Subthreshold correlation over distance (Comparing DMD vs. Wide Field) Kolmogorov–Smirnov test:');
+[ordered_dis, sidx ] = sort(rdist);
+sorted_cindi = cindi(sidx);
+sorted_cwide = cwide(sidx);
+
+[h, p] = kstest2(sorted_cindi, sorted_cwide)
+
 % Plot subthreshold cross correlation over binned distance
 bin_size = 30; % In um
 last_bin = 180;
 indi_corr_bins = [];
 wide_corr_bins = [];
+ft_corr_cells = {};
+
 all_bins = [];
 bin_labels = {};
 for i=0:bin_size:last_bin
@@ -247,8 +259,12 @@ for i=0:bin_size:last_bin
     else
         corr_idx = find(rdist >= i & rdist < i+bin_size);
     end
+    
     indi_corr_bins = horzcat_pad(indi_corr_bins, cindi(corr_idx));
     wide_corr_bins = horzcat_pad(wide_corr_bins, cwide(corr_idx));
+    
+    % Store the correlations in bins using cell arrays
+    ft_corr_cells = cat(1, [num2cell(cindi(corr_idx)), num2cell(cwide(corr_idx))]);
     
     % Store all of the correlation distributions in one matrix
     all_bins = horzcat_pad(all_bins, cindi(corr_idx));
@@ -259,15 +275,18 @@ for i=0:bin_size:last_bin
     else
         bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
     end
-    bin_labels = cat(2, bin_labels, ['']);
 
+    bin_labels = cat(2, bin_labels, [' ']);
 end
-X = categorical(bin_labels);
-X = reordercats(X, bin_labels);
+% X = categorical(bin_labels);
+% X = reordercats(X, bin_labels);
 figure('Renderer', 'painters', 'Position', [0 0 900 800]);
-boxplot(all_bins, bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
+boxplot(all_bins, 'labels', bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
 %boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'},...
 %        'SecondaryLabels', bin_labels);
+
+%a = get(get(gca,'children'),'children');
+%t = get(a,'tag')
 
 ylabel('Pearson''s correlation');
 title_string = ['Subthreshold Vm cross correlation over binned distance ' num2str(bin_size)];
@@ -276,6 +295,31 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+
+% Statistical test for subthreshold correlations from binned distances
+% Will keep the columns as DMD and wide field, because that is the factor
+% we are looking for interaction between the individual and wide
+% I think I have to line up the same bins across both conditions, add Nans
+% intermittently. This may allow me to do the Friedman's maybe?
+ft_corr = [];
+max_reps = 0;
+for i=1:size(indi_corr_bins, 2)
+    ft_corr = [ft_corr; horzcat_pad(nanmean(indi_corr_bins(:, i)), nanmean(wide_corr_bins(:, i)))];
+end
+
+% Unfortunantely it does not like the cell arrays
+%disp('Friedman''s test on Subthreshold correlations:');
+%[p,tbl,stats] = friedman(ft_corr_cells, 1)
+
+disp('Friedman''s test on Subthreshold correlations DMD in column 1, wide field in column 2 (using averages):');
+[p,tbl,stats] = friedman(ft_corr, 1)
+
+
+disp('Kruskal-Wallis test on subthreshold DMD:');
+[p,tbl,stats] = kruskalwallis(indi_corr_bins)
+
+disp('Kruskal-Wallis test on subthreshold wide field:');
+[p,tbl,stats] = kruskalwallis(wide_corr_bins)
 
 
 % Plot spike-spike correlations over binned distances
@@ -302,14 +346,32 @@ for i=0:bin_size:last_bin
     else
         bin_labels = cat(2, bin_labels, [num2str(i) '-' num2str(i+bin_size - 1)]);
     end
-    bin_labels = cat(2, bin_labels, ['']);
+
+    bin_labels = cat(2, bin_labels, ['-']);
     
 end
-X = categorical(bin_labels);
-X = reordercats(X, bin_labels);
+
+ft_corr = [];
+max_reps = 0;
+for i=1:size(indi_corr_bins, 2)
+    ft_corr = [ft_corr; horzcat_pad(nanmean(indi_corr_bins(:, i)), nanmean(wide_corr_bins(:, i)))];
+end
+
+% Spike-spike statistical tests
+disp('Friedman''s test on spike-spike correlations DMD in column 1, wide field in column 2 (using averages):');
+[p,tbl,stats] = friedman(ft_corr, 1)
+
+disp('Kruskal-Wallis test on DMD spike-spike correlations over binned distance:');
+[p,tbl,stats] = kruskalwallis(indi_corr_bins)
+
+disp('Kruskal-Wallis test on wide field spike-spike correlations over binned distance:');
+[p,tbl,stats] = kruskalwallis(wide_corr_bins)
+
+%X = categorical(bin_labels);
+%X = reordercats(X, bin_labels);
 
 figure('Renderer', 'painters', 'Position', [0 0 900 800]);
-boxplot(all_bins, bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
+boxplot(all_bins, 'labels', bin_labels, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol', '.k');
 %boxplotGroup({indi_corr_bins, wide_corr_bins}, 'PrimaryLabels', {'indi', 'wide'}, 'SecondaryLabels', bin_labels);
 ylabel('Pearson''s correlation');
 title_string = ['Spike-Spike cross correlation over binned distance ' num2str(bin_size)];
@@ -349,11 +411,11 @@ for i=1:num_reshuffles
     slope_diff = [slope_diff, indi_fit(1) - wide_fit(1)];
 end
 
-indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes)
-indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes)
+indi_top = nanmean(indi_shuf_slopes) + 3*nanstd(indi_shuf_slopes);
+indi_bot = nanmean(indi_shuf_slopes) - 3*nanstd(indi_shuf_slopes);
 
-wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes)
-wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes)
+wide_top = nanmean(wide_shuf_slopes) + 3*nanstd(wide_shuf_slopes);
+wide_bot = nanmean(wide_shuf_slopes) - 3*nanstd(wide_shuf_slopes);
 
 % Plot the shuffled distributions of the correlations over distance
 figure('Renderer', 'painters', 'Position', [0 0 1700 700]);
@@ -401,7 +463,11 @@ hold on;
 [counts, bin_centers] = hist(slope_diff);
 bar(bin_centers, counts, 'BarWidth', 1);
 legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
-title('Shuffled Slope Difference From Subthreshold Vm (Individual - Wide Field)');
+title('Shuffled Slope Difference From Subthreshold Vm (DMD - Wide Field)');
+
+% Run statistical test to show difference between the regressed slopes
+disp('Z test of the observed difference (DMD - Wide Field) in regressed slopes of subthreshold correlation to 1,000 shuffled regressions:');
+[h, p] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
 
 %TODO save the shuffled plots
 
@@ -440,6 +506,15 @@ title(title_string);
 saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+
+%  Kolmogorov-Smirnov test for difference in the two correlations over
+%  distance
+disp('Spike-spike correlation over distance KS test:');
+[ordered_dis, sidx ] = sort(rdist2);
+sorted_cindiS = cindiS(sidx);
+sorted_cwideS = cwideS(sidx);
+
+[h, p] = kstest2(sorted_cindiS, sorted_cwideS)
 
 
 %--Perform shuffling of the data to test significance in the calculated regression lines
@@ -525,7 +600,6 @@ legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Shuffled Slope Difference from spike-spike (Individual - Wide Field)');
 
 %TODO save the shuffled plots
-
 
 %{
 [h,p,ci,stats] = ttest(cindiS,cwideS)

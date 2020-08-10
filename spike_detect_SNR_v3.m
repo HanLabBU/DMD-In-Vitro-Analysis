@@ -182,21 +182,45 @@ disp('Show figure');
 
 figure('Color','w', 'Renderer', 'painters');
 subplot(1,3,1:2)
+signal_adj = 20;
 for ind=1:size(result.orig_trace,1)
-%TODO change color to be consistent with indiviudal - red, wide field -
-%blue
-plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on, 
+% Original plot procedure
+%plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on, 
+% Simple division plot
+%plot((result.orig_trace(ind, :) - nanmean(result.orig_trace(ind, :)) )./50 + ind, 'r');
+
+% Plots the trace as the signal/noise divide by some factor
+plot(((result.orig_trace(ind,:)./result.trace_noise(ind)))./signal_adj + ind,'k');
+
 hold on, %plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
-end;axis tight;xlabel('Time'); ylabel('neuron')
+
+end;
+
+% Scale bars
+posx = 100;
+posy = -1;
+time_scale = 500; % 
+SNR_scale = 14./signal_adj; % SNR of 12
+plot([posx, posx + time_scale], [posy, posy], 'r-', 'LineWidth', 2);
+hold on;
+plot([posx, posx], [posy, posy + SNR_scale], 'r-', 'LineWidth', 2);
+hold on;
+ht = text(posx - 350, posy, ['SNR ' num2str(SNR_scale*signal_adj)]);
+set(ht,'Rotation', 90);
+hold on;
+text(posx + 50, posy - 1, [num2str(time_scale/500) ' s']);
+
+axis tight;
+set(gca,'xticklabel',{[]});
+set(gca, 'YTick', [1:size(result.orig_trace, 1)]);
+
+xlabel('Time'); ylabel('neuron')
 subplot(1,3,3)
 clear SNR_val
 for ind=1:length(result.spike_snr)
 SNR_val(ind)= mean(result.spike_snr{ind})
 end
 bar(SNR_val');xlabel('neuron'); ylabel('SNR')
-
-
-
 
 end
 
