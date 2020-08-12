@@ -599,6 +599,11 @@ bar(bin_centers, counts, 'BarWidth', 1);
 legend({'Observed','Mean shuffled', '\mu+/- 3sigma'});
 title('Shuffled Slope Difference from spike-spike (Individual - Wide Field)');
 
+% Run statistical test to show difference between the regressed slopes (spike-spike)
+disp('Z test of the observed difference (DMD - Wide Field) in regressed slopes of spike-spike correlation to 1,000 shuffled regressions:');
+[h, p] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
+
+
 %TODO save the shuffled plots
 
 %{

@@ -133,7 +133,6 @@ for i = 1:length({fov_results.name})
         trial_traces(1:size(allresults.trial{j}.traces, 1), :, j) = allresults.trial{j}.traces;
     end
     
-    % TODO will need to make sure all of the results data is saved
     cross_corr_result = cross_correlation_distance(trial_traces, allresults.roi);
     
     allresults.roi_centroids = cross_corr_result.centroids;
@@ -155,7 +154,7 @@ for i = 1:length({fov_results.name})
         traces = allresults.trial{j}.traces;
         
         % Perform the spike_detection_SNR
-        result = spike_detect_SNR_v3(traces);
+        result = spike_detect_SNR_v3(traces); % v3 was the original script used for the previous
         
         % Store each trial's spike and SNR data columnwise
         if j == 1
