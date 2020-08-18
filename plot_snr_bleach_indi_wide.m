@@ -36,6 +36,7 @@ for id=1:length(ses)
 end
 wideloc=find(findwide);
 
+
 % Find corresponding individual field
 indiloc = [];
 for file=1:length(ses)
@@ -60,6 +61,7 @@ end
 %% seelct matching ROI
 indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
 indi_SRate = []; wide_SRate = [];
+indi_samp = []; wide_samp = [];
 fov_label = {};
 for id=1:length(wideloc)
     widefile=load(ses(wideloc(id)).name);
@@ -90,6 +92,7 @@ for id=1:length(wideloc)
     % Store the bleaching values except for the first trial
     indi_temp = indifile.allresults.bleach(2:end, mROI(:, 1));
     wide_temp = widefile.allresults.bleach(2:end, mROI(:, 1));
+    
   else
     % Store all of the bleaching values
     indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
@@ -97,6 +100,16 @@ for id=1:length(wideloc)
   
   end
 
+    % DEBUG
+    if ~isempty(find(indi_temp < .80))
+        disp(['Large Decay' indifile.fov_name ' ' indifile.type]);
+    end
+    
+    if ~isempty(find(wide_temp < .80))
+        disp(['Large Decay' widefile.fov_name ' ' widefile.type]);
+    end
+    
+  
   indiAllB = horzcat_pad(indiAllB, indi_temp(:));
   wideAllB = horzcat_pad(wideAllB, wide_temp(:));
   %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
@@ -133,6 +146,14 @@ for id=1:length(wideloc)
     % Calculate the average spike event rate for the whole field of view
     indi_SRate = [indi_SRate, nanmean(indi_spikerate_neuron)];
     wide_SRate = [wide_SRate, nanmean(wide_spikerate_neuron)];
+    
+    % Store the spike amplitudes
+    temp = [indifile.allresults.spike_amplitude{:}];
+    indi_samp = horzcat_pad(indi_samp, temp(:));
+    
+    temp = [widefile.allresults.spike_amplitude{:}];
+    wide_samp = horzcat_pad(wide_samp, temp(:));
+    
 end
 
 
@@ -141,7 +162,7 @@ figure('COlor','w'),plot(indiB,'r'); hold on,plot(wideB,'k')
 legend indi wide
 [h,p,ci,stats] = ttest(indiB,wideB)
 
-M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100
+M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
 figure('COlor','w','Renderer', 'painters')
 boxplot( M   , {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
@@ -262,7 +283,7 @@ saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
 
 %% Plot the number of resolvable event rate between individual and wide field
 
-% TODO the will be tricky because the event rate has to be over the total
+% Will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
 figure('Renderer', 'painters');
 boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
@@ -272,8 +293,16 @@ title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];
 ylabel('Spike Rate');
 title(title_string);
 
-
 saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Event Rate\SVG Format\' title_string '.svg']);
 
+%% Plot the distribution of spike amplitudes
+figure('Renderer', 'painters');
+boxplot(horzcat_pad(indi_samp(:), wide_samp(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
+title_string = ['Spike amplitude Individual DMD vs. Wide Field'];
+ylabel('delta F');
+title(title_string);
+
+saveas(gcf, [save_fig_path 'Spike Amplitude\Jpeg Format\' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Spike Amplitude\SVG Format\' title_string '.svg']);

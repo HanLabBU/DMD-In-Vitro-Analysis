@@ -154,7 +154,7 @@ for i = 1:length({fov_results.name})
         traces = allresults.trial{j}.traces;
         
         % Perform the spike_detection_SNR
-        result = spike_detect_SNR_v3(traces); % v3 was the original script used for the previous
+        result = spike_detect_SNR_v3b(traces); % v3 was the original script used for the previous
         
         % Store each trial's spike and SNR data columnwise
         if j == 1

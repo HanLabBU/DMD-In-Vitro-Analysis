@@ -9,8 +9,8 @@ clear all;
 addpath('.');
 
 % In vitro path
-%cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
-cd('D:\DMD Analysis Temp Data\');
+cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+%cd('D:\DMD Analysis Temp Data\');
 
 % Final figure folder
 save_fig_path = '\\engnas.bu.edu\research\eng_research_hanlab\DMD Paper\In Vitro Plots\';

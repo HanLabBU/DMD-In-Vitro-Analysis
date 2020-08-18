@@ -96,12 +96,16 @@ for neuron=1:size(traces,2)
 
 %%%%%%%%%%%%%
  trace_val=pre_d_trace;
- %  up_idx_list = find(pre_d_trace>(nanmean(d_u_f_trace)+event_parameter.up_threshold_value));
- up_idx_list= find((current_trace-1)>(4.5*current_trace_noise) )  ;
+ %up_idx_list = find(pre_d_trace>(nanmean(d_u_f_trace)+event_parameter.up_threshold_value));
+ up_idx_list= find((current_trace-1)>(event_parameter.up_threshold_value*current_trace_noise) )  ; %TODO the up_idx_list is not being found for neuron 4
 
+ % DEBUG
+ disp(['Trace vals for thresholding ' num2str(neuron)]);
+ up_size = size(up_idx_list)
+ 
  for up_idx=up_idx_list'
              %   if up_idx>2 & (up_idx+1)<=numel(d_u_f_trace) & d_u_f_trace(up_idx)>0 %& d_u_f_trace(up_idx+1)<0 %& post_d_trace(up_idx+1)<(nanmean(d_u_f_trace)-event_parameter.down_threshold_value)% & ~isnan(denoise_trace(up_idx))
-               if up_idx>3 & (up_idx+1)<=numel(d_u_f_trace) & d_u_f_trace(up_idx)>0 &  ~isnan(denoise_trace(up_idx)) %&  post_d_trace(up_idx+4)<(nanmean(d_u_f_trace)-event_parameter.down_threshold_value)
+               if up_idx>3 & (up_idx+1)<=numel(d_u_f_trace) & d_u_f_trace(up_idx)>0 %&  ~isnan(denoise_trace(up_idx)) %&  post_d_trace(up_idx+4)<(nanmean(d_u_f_trace)-event_parameter.down_threshold_value)
            
               peak_intensity = current_trace(up_idx);
                     pre_peak_intensity_1 = current_trace(up_idx-1);
@@ -110,7 +114,9 @@ for neuron=1:size(traces,2)
                      post_peak_intensity_1 = current_trace(up_idx+1);
                   peak_V=trace_val(up_idx);
                 valnear= find(abs( up_idx- up_idx_list)<=2 &   abs( up_idx- up_idx_list)>0);
-  if isempty(valnear); vthres=0; else;  vthres=max(trace_val(up_idx_list(valnear)));end
+  if isempty(valnear); vthres=0; else;  
+      vthres=max(trace_val(up_idx_list(valnear)));end
+           thres = trace_val(up_idx_list(valnear))
            current_signal_intensity = max([peak_intensity-pre_peak_intensity_1,peak_intensity-pre_peak_intensity_2,peak_intensity-pre_peak_intensity_3]);
                     current_snr = current_signal_intensity/current_trace_noise;
             if peak_V > vthres;% >  post_peak_intensity_1  & peak_intensity > pre_peak_intensity_1 
@@ -122,10 +128,6 @@ for neuron=1:size(traces,2)
                     
                 end
             end
-
-
-
-
 
             event.roaster = zeros(size(current_trace));
             event.roaster(event.idx) = 1;   
@@ -146,14 +148,14 @@ for neuron=1:size(traces,2)
    end
  
    % Artefact removal
-   v1= tracews;
-deviT= abs(zscore(v1))>6; % zscore threhsold
-z=find(isnan(denoise_trace));  % points removed from denoised
-selT=zeros(1,length(v1));
-selT(z)=1;
-selT(deviT)=1;
-selT=fastsmooth(selT,350,1,1);
-v1(selT>0)=NaN;
+    v1= tracews;
+    deviT= abs(zscore(v1))>6; % zscore threhsold
+    z=find(isnan(denoise_trace));  % points removed from denoised
+    selT=zeros(1,length(v1));
+    selT(z)=1;
+    selT(deviT)=1;
+    selT=fastsmooth(selT,350,1,1);
+    v1(selT>0)=NaN;
 
    
    
@@ -182,10 +184,11 @@ rast(rast==0)=NaN;
 % plot(rast(ind,:) + ind ,'.k'); hold on,
 % end
 
+disp('Showing Traces and SNR Figure');
 figure('COlor','w')
 subplot(1,3,1:2)
 for ind=1:size(result.orig_trace,1)
-plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,
+plot(((result.orig_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,
 hold on,plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
 end;axis tight;xlabel('Time'); ylabel('neuron')
 subplot(1,3,3)
