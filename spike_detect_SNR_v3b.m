@@ -1,11 +1,11 @@
 function  result=spike_detect_SNR_v3b(traces,up_threshold, down_threshold)
 
-% addpath(genpath('\\engnas.bu.edu\research\eng_research_handata\EricLowet\'))
+addpath(genpath('~/handata_server/EricLowet/Scripts/'))
 % result=spike_detect_SNR(traces)
 % 
  
 FS=500; % sampling frequency
-addpath(genpath('\\engnas.bu.edu\Research\eng_research_handata\Hua-an Tseng\Code\other\eegfilt\'))
+addpath(genpath('~/handata_server/Hua-an Tseng/Code/other/eegfilt/'))
 plot_yes=0;
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;

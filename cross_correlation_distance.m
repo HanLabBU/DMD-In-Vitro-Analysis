@@ -79,13 +79,6 @@ function [result] = cross_correlation_distance(trial_traces, ROIs)
     % Save the average cross correlations
     result.average_cross_corr = average_cross_corr;
     
-    %% Plot the distance between pairs and their correlations
-    figure;
-    plot(dist_ave_corr(1, :), dist_ave_corr(2, :), '.', 'MarkerSize', 10);
-    title("Distance between neuron pairs vs. Correlation");
-    xlabel("Distance (Pixel)");
-    ylabel("Pearson Correlation (r)");
-
     % Perform linear regression
     dists = dist_ave_corr(1, :)';
     corrs = dist_ave_corr(2, :)';

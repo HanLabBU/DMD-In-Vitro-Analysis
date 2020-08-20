@@ -3,20 +3,14 @@ close all;
 clear all;
 
 % In vitro data network
-root_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Project\v2 script Trace Extraction\In vitro\';
-
-% In vitro local folder
-%root_path = 'D:\Work\Graduate School\Han Lab\Projects\Digital_Micromirror_Device\Temporary In Vitro Culture Data\';
-
-% One folder that shows both the individual mask and wide field
-%root_path = '\\ad\eng\research\eng_research_handata\Yangyang Wang\DMD invivo data processing\July 4 processing by folder\D\602088 40x obj individual vs large fov 1\';
+root_path = '~/handata_server/Pierre Fabris/DMD Project/v2 script Trace Extraction/In vitro/';
 
 % Folder to save all analysis data
-save_all_path = '\\ad\eng\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\';
+save_all_path = '~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/';
 
 % Exclude trials with obvious motion artefacts
 exclude_motart = 1;
-artefact_trials = {{'Culture 5\Wide', 2}, {'Culture 24\Wide', 3}, {'Culture 23\Wide', 3}}; % {Session, <trial no>}
+artefact_trials = {{'Culture 5/Wide', 2}, {'Culture 24/Wide', 3}, {'Culture 23/Wide', 3}}; % {Session, <trial no>}
 
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses
@@ -40,7 +34,7 @@ while ~isempty(search_dirs)
     for i=1:length(dirs)
         % Add directories to search_dirs
         if isdirs(i)
-            search_dirs{end + 1} = [cur_dir dirs{i} '\'];
+            search_dirs{end + 1} = [cur_dir dirs{i} '/'];
             dir_exists = 1;
         end
     end
@@ -62,8 +56,8 @@ for i = 1:length(FOV_dirs)
     files = {listings.name};
     
     % Check if all results file exists for this FOV in the saved folder
-    allresults_file = [strrep(erase(fov, root_path), '\', '_') 'allresults']
-    allresults.fov_name = strrep(erase(fov, {root_path, 'Individual Mask', 'Wide Field'}), '\', '');
+    allresults_file = [strrep(erase(fov, root_path), '/', '_') 'allresults']
+    allresults.fov_name = strrep(erase(fov, {root_path, 'Individual Mask', 'Wide Field'}), '/', '');
     
     % Read in all trials and save original traces
     trace_files = files(contains(files, 'traces'));
@@ -113,7 +107,6 @@ for i = 1:length(FOV_dirs)
 end
 
 %% Calculate the cross correlations and distance between neurons
-% TODO fix to iterate through allresults
 fov_results = dir([save_all_path '*.mat']);
 length({fov_results.name})
 for i = 1:length({fov_results.name})
@@ -197,42 +190,16 @@ for i = 1:length({fov_results.name})
     % Store all of the ratios in a single folder
     folder_pb_ratios = [];
     
-    % Trial mean/std of photobleaching ratio
-    trial_pb_averages_std = [];
-    
-    % Load each trial's traces
+    % Load each trial's traces and calculate the photobleaching there
     for j=1:length(allresults.trial)
             traces = allresults.trial{j}.traces;
-            trial_pb_ratios = photobleach_absolute_values(traces, 300);
+            trial_pb_ratios = photobleach_estimation(traces, 300);
             folder_pb_ratios = [folder_pb_ratios; trial_pb_ratios];
-            
-            trial_pb_averages_std = [trial_pb_averages_std, [nanmean(trial_pb_ratios); std(trial_pb_ratios)]];
     end
-    
-    % Average and std of pb ratio for entire folder
-    average_folder_pb = [nanmean(folder_pb_ratios); std(folder_pb_ratios)];
     
     % Save the photobleaching ratios into the all results variable
     allresults.bleach = folder_pb_ratios;
     
-    % Add folder ratios to all pb ratio matrix
-    all_pb_ratios = horzcat_pad(all_pb_ratios, folder_pb_ratios(:));
-    
-    [allresults.fov_name ' ' allresults.type]
-    pb_plot_labels = cat(2, pb_plot_labels, [allresults.fov_name ' ' allresults.type]);
-    
     % Update/Save all results
     save([save_all_path fov_results(i).name], 'allresults');
 end
-
-
-% Plot all of the folder photobleachings
-figure;
-boxplot(all_pb_ratios, pb_plot_labels);
-ax = gca;
-ax.XAxis.FontSize = 15;
-ax.YAxis.FontSize = 15;
-xtickangle(ax, 45);
-ylabel('(initial intensity)/(final intensity)');
-
-

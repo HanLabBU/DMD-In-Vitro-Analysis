@@ -125,8 +125,6 @@ for id=1:length(wideloc)
   
   indiAllB = horzcat_pad(indiAllB, indi_temp(:));
   wideAllB = horzcat_pad(wideAllB, wide_temp(:));
-  %indiAllB = [indiAllB, indifile.allresults.bleach(1, :)] % Was originally mROI(:, 1)
-  %wideAllB = [wideAllB, widefile.allresults.bleach(1, :)]
   
   % Store the FOV labels
   fov_label = cat(2, fov_label, [indifile.allresults.fov_name ' ' indifile.allresults.type]);
@@ -171,13 +169,13 @@ end
 
 
 %% PLOT the bleaching decay boxplots between DMD and Wide Field
-figure('COlor','w'),plot(indiB,'r'); hold on,plot(wideB,'k')
+figure('COlor','w'),plot(indiAllB(:),'r'); hold on,plot(wideAllB(:),'k')
 legend indi wide
-[h,p,ci,stats] = ttest(indiB,wideB)
+[h,p,ci,stats] = ttest(indiAllB(:),wideAllB(:))
 
-M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
+%M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
 figure('COlor','w','Renderer', 'painters')
-boxplot( M   , {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
+boxplot([indiAllB(:), wideAllB(:)], {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
 title(title_string);
 

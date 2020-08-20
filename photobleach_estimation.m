@@ -20,8 +20,8 @@ function [result] = photobleach_estimation(traces, n)
             % This filter is not changing much of the overall plots
             trace = medfilt1(trace, 51);
             
-            init_mean_intensity = nanmean(trace(1:n))-767.7;
-            last_mean_intensity = nanmean(trace(end-n:end))-767.7;
+            init_mean_intensity = nanmean(trace(1:n)); % -767.7;
+            last_mean_intensity = nanmean(trace(end-n:end)); %-767.7;
             
             
             photo_bleach_ratio = [photo_bleach_ratio, last_mean_intensity/init_mean_intensity];
