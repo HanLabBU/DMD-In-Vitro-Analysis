@@ -98,10 +98,6 @@ for neuron=1:size(traces,2)
  trace_val=pre_d_trace;
  %up_idx_list = find(pre_d_trace>(nanmean(d_u_f_trace)+event_parameter.up_threshold_value));
  up_idx_list= find((current_trace-1)>(event_parameter.up_threshold_value*current_trace_noise) )  ; %TODO the up_idx_list is not being found for neuron 4
-
- % DEBUG
- disp(['Trace vals for thresholding ' num2str(neuron)]);
- up_size = size(up_idx_list)
  
  for up_idx=up_idx_list'
              %   if up_idx>2 & (up_idx+1)<=numel(d_u_f_trace) & d_u_f_trace(up_idx)>0 %& d_u_f_trace(up_idx+1)<0 %& post_d_trace(up_idx+1)<(nanmean(d_u_f_trace)-event_parameter.down_threshold_value)% & ~isnan(denoise_trace(up_idx))

@@ -203,7 +203,7 @@ for i = 1:length({fov_results.name})
     % Load each trial's traces
     for j=1:length(allresults.trial)
             traces = allresults.trial{j}.traces;
-            trial_pb_ratios = photobleach_estimation(traces, 300);
+            trial_pb_ratios = photobleach_absolute_values(traces, 300);
             folder_pb_ratios = [folder_pb_ratios; trial_pb_ratios];
             
             trial_pb_averages_std = [trial_pb_averages_std, [nanmean(trial_pb_ratios); std(trial_pb_ratios)]];

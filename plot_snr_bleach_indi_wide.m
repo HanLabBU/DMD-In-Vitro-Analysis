@@ -10,14 +10,16 @@ clear all;
 addpath('.');
 
 % in vitro data
-cd('\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+cd('~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/');
 
 % Folder to save figures
 %save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
-save_fig_path = '\\engnas.bu.edu\research\eng_research_hanlab\DMD Paper\In Vitro Plots\';
+save_fig_path = '~/hanlab_server/DMD Paper/In Vitro Plots/';
 
-% Ignore the first trial across each FOV
+% Ignore the first trial across each FOV for photobleaching estimation
 ignore_first = 1;
+% Ignore the 2nd trial of 24
+ignore_24 = 1;
 
 % Original Sampling Frequency
 sample_frequency = 500; % Hz
@@ -64,6 +66,8 @@ indi_SRate = []; wide_SRate = [];
 indi_samp = []; wide_samp = [];
 fov_label = {};
 for id=1:length(wideloc)
+    indi_temp = [];
+    wide_temp = [];
     widefile=load(ses(wideloc(id)).name);
     indifile=load(ses(indiloc(id)).name);
     clear wrm % ROI centroid
@@ -84,29 +88,38 @@ for id=1:length(wideloc)
     mROI=[mROI; [ id3 wloc]];end
     end
     
-    %%% Put in matrix%%% average
-  indiB= [indiB, nanmean(indifile.allresults.bleach(1,mROI(:,1)), 1) ]; %TODO include all rows and linearize matrix
-  wideB= [wideB, nanmean(widefile.allresults.bleach(1,mROI(:,1)), 1) ]; % Why is it an index of 1?
-  
   if ignore_first == 1 && size(indifile.allresults.bleach, 1) > 1
     % Store the bleaching values except for the first trial
-    indi_temp = indifile.allresults.bleach(2:end, mROI(:, 1));
-    wide_temp = widefile.allresults.bleach(2:end, mROI(:, 1));
+    
+    % Ignore the second trial of 24 individual
+    if ignore_24 == 1 && contains(indifile.allresults.fov_name, '24') == 1
+        indi_temp = indifile.allresults.bleach(3:end, mROI(:, 1));
+        wide_temp = widefile.allresults.bleach(3:end, mROI(:, 1));
+    else
+        indi_temp = indifile.allresults.bleach(2:end, mROI(:, 1));
+        wide_temp = widefile.allresults.bleach(2:end, mROI(:, 1));
+    end
     
   else
-    % Store all of the bleaching values
-    indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
-    wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
-  
+    
+      if ignore_24 == 1 && contains(indifile.allresults.fov_name, '24') == 1
+        % Ignore the second trial of the bleaching values
+        indi_temp = indifile.allresults.bleach([1, 3:end], mROI(:, 1));
+        wide_temp = widefile.allresults.bleach([1, 3:end], mROI(:, 1));
+      else
+        % Store all of the bleaching values
+        indi_temp = indifile.allresults.bleach(:, mROI(:, 1));
+        wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
+      end
   end
 
     % DEBUG
-    if ~isempty(find(indi_temp < .80))
-        disp(['Large Decay' indifile.fov_name ' ' indifile.type]);
+    if ~isempty(find(indi_temp < .5))
+        disp(['Large Decay ' indifile.allresults.fov_name ' ' indifile.allresults.type]);
     end
     
-    if ~isempty(find(wide_temp < .80))
-        disp(['Large Decay' widefile.fov_name ' ' widefile.type]);
+    if ~isempty(find(wide_temp < .5))
+        disp(['Large Decay ' widefile.allresults.fov_name ' ' widefile.allresults.type]);
     end
     
   

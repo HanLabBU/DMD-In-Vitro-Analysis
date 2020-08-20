@@ -1,5 +1,5 @@
 function [result] = photobleach_absolute_values(traces, n)
-	show_fig = 1;
+	show_fig = 0;
     
     pb_diff = [];
     for i=1:size(traces, 2)
