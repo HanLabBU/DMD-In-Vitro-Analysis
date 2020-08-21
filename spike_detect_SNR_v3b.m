@@ -34,7 +34,6 @@ plot_yes=0;
 event_parameter.moving_window=201;
 result=[];
 for neuron=1:size(traces,2)
-    neuron
  current_traceOrig = (traces(:,neuron));
  current_trace= current_traceOrig-fastsmooth(current_traceOrig,1000,1,1);
               event.idx=[];
@@ -112,7 +111,7 @@ for neuron=1:size(traces,2)
                 valnear= find(abs( up_idx- up_idx_list)<=2 &   abs( up_idx- up_idx_list)>0);
   if isempty(valnear); vthres=0; else;  
       vthres=max(trace_val(up_idx_list(valnear)));end
-           thres = trace_val(up_idx_list(valnear))
+           
            current_signal_intensity = max([peak_intensity-pre_peak_intensity_1,peak_intensity-pre_peak_intensity_2,peak_intensity-pre_peak_intensity_3]);
                     current_snr = current_signal_intensity/current_trace_noise;
             if peak_V > vthres;% >  post_peak_intensity_1  & peak_intensity > pre_peak_intensity_1 
@@ -121,7 +120,6 @@ for neuron=1:size(traces,2)
                         event.amplitude = cat(1,event.amplitude,current_signal_intensity);
                         event.snr = cat(1,event.snr,current_snr);
                     end;end
-                    
                 end
             end
 

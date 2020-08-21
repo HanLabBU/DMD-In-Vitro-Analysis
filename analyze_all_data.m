@@ -185,7 +185,7 @@ pb_plot_labels = {};
 fov_results = dir([save_all_path '*.mat']);
 for i = 1:length({fov_results.name})
     load([save_all_path fov_results(i).name]);
-	fov_results(i).name
+	fov_results(i).name;
     
     % Store all of the ratios in a single folder
     folder_pb_ratios = [];

@@ -9,14 +9,14 @@ clear all;
 addpath('.');
 
 % In vitro path
-cd('handata_server\Pierre Fabris\DMD Project\All In Vitro Analysis\');
+cd('~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/');
 %cd('D:\DMD Analysis Temp Data\');
 
 % Final figure folder
-save_fig_path = 'hanlab_server\DMD Paper\In Vitro Plots\';
+save_fig_path = '~/hanlab_server/DMD Paper/In Vitro Plots/';
 
 % Scripts for needed functions
-addpath('handata_server\EricLowet\DMD\main_analysis\');
+addpath('~/handata_server/EricLowet/DMD/main_analysis/');
 
 ses=dir('*.mat');
 

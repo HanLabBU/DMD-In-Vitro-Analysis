@@ -5,7 +5,7 @@
 
 close all;
 clear all;
-
+ 
 % Use the scripts in the DMD scripts folder
 addpath('.');
 
@@ -61,7 +61,7 @@ for file=1:length(ses)
 end
 
 %% seelct matching ROI
-indiB=[];wideB=[]; indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
+indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
 indi_SRate = []; wide_SRate = [];
 indi_samp = []; wide_samp = [];
 fov_label = {};
@@ -112,16 +112,6 @@ for id=1:length(wideloc)
         wide_temp = widefile.allresults.bleach(:, mROI(:, 1));
       end
   end
-
-    % DEBUG
-    if ~isempty(find(indi_temp < .5))
-        disp(['Large Decay ' indifile.allresults.fov_name ' ' indifile.allresults.type]);
-    end
-    
-    if ~isempty(find(wide_temp < .5))
-        disp(['Large Decay ' widefile.allresults.fov_name ' ' widefile.allresults.type]);
-    end
-    
   
   indiAllB = horzcat_pad(indiAllB, indi_temp(:));
   wideAllB = horzcat_pad(wideAllB, wide_temp(:));
@@ -174,8 +164,9 @@ legend indi wide
 [h,p,ci,stats] = ttest(indiAllB(:),wideAllB(:))
 
 %M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
-figure('COlor','w','Renderer', 'painters')
-boxplot([indiAllB(:), wideAllB(:)], {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
+figure('Color','w','Renderer', 'painters')
+M=[ ((1-(indiAllB(:))).*-1) , ((1-(wideAllB(:))).*-1)].*100 ;
+boxplot(M, {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
 title(title_string);
 
@@ -186,7 +177,7 @@ saveas(gcf, [save_fig_path 'Photobleaching\SVG Format\' title_string '.svg']);
 
 % Violin plots of photobleaching
 figure('Position', [300 300 800 750]);
-violin(horzcat_pad(indiAllB(:), wideAllB(:)), 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
+violin([indiAllB(:), wideAllB(:)], 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
 ylabel('Photobleach ratio');
 
 title_string = [];
@@ -296,12 +287,13 @@ saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
 
 % Will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
+[h,p,ci,stats] = ttest(indi_SRate(:), wide_SRate(:))
 figure('Renderer', 'painters');
 boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
 %hold on;
 %plot([indi_SRate; wide_SRate], '--');
-title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field'];
-ylabel('Spike Rate');
+title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field p=' num2str(p)];
+ylabel('Spike Rate (Hz)');
 title(title_string);
 
 saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
