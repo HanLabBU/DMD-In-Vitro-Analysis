@@ -14,7 +14,7 @@ cd('~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/');
 
 % Folder to save figures
 %save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
-save_fig_path = '~/hanlab_server/DMD Paper/In Vitro Plots/';
+save_fig_path = '~/handata_server/Pierre Fabris/DMD Project/Data Figures/';
 
 % Ignore the first trial across each FOV for photobleaching estimation
 ignore_first = 1;
@@ -167,8 +167,8 @@ legend indi wide
 figure('Color','w','Renderer', 'painters')
 M=[ ((1-(indiAllB(:))).*-1) , ((1-(wideAllB(:))).*-1)].*100 ;
 boxplot(M, {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
-title_string = [ 'Boxplot of photodecay p= ' num2str(p)];
-title(title_string);
+title_string = 'Boxplot of photodecay';
+title([title_string ' p= ' num2str(p)]);
 
 saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
@@ -275,8 +275,8 @@ legend indi wide
 
 figure('COlor','w')
 boxplot([indiSNR, wideSNR], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
-title_string = ['Boxplots of SNR p= ' num2str(p)];
-title(title_string);
+title_string = 'Boxplots of SNR';
+title([title_string ' p= ' num2str(p)]);
 
 saveas(gcf, [save_fig_path 'SNR\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'SNR\EPS Format\' title_string '.eps'], 'epsc');
@@ -292,10 +292,9 @@ figure('Renderer', 'painters');
 boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
 %hold on;
 %plot([indi_SRate; wide_SRate], '--');
-title_string = ['Resolved Spike Rate Individual DMD vs. Wide Field p=' num2str(p)];
+title_string = 'Resolved Spike Rate Individual DMD vs. Wide Field';
+title([title_string ' p=' num2str(p)]);
 ylabel('Spike Rate (Hz)');
-title(title_string);
-
 saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Event Rate\SVG Format\' title_string '.svg']);

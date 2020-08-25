@@ -13,7 +13,7 @@ cd('~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/');
 %cd('D:\DMD Analysis Temp Data\');
 
 % Final figure folder
-save_fig_path = '~/hanlab_server/DMD Paper/In Vitro Plots/';
+save_fig_path = '~/handata_server/Pierre Fabris/DMD Project/Data Figures/';
 
 % Scripts for needed functions
 addpath('~/handata_server/EricLowet/DMD/main_analysis/');
@@ -244,7 +244,7 @@ sorted_cwide = cwide(sidx);
 
 % Plot subthreshold cross correlation over binned distance
 bin_size = 30; % In um
-last_bin = 180;
+last_bin = 180; % Minimum value of the last bin so that there are enough points
 indi_corr_bins = [];
 wide_corr_bins = [];
 ft_corr_cells = {};
@@ -517,7 +517,7 @@ sorted_cwideS = cwideS(sidx);
 [h, p] = kstest2(sorted_cindiS, sorted_cwideS)
 
 
-%--Perform shuffling of the data to test significance in the calculated regression lines
+%%--Perform shuffling of the data to test significance in the calculated regression lines
 indi_shuf_slopes = [];
 wide_shuf_slopes = [];
 slope_diff = [];
