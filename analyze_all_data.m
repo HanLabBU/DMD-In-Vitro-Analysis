@@ -10,7 +10,7 @@ save_all_path = '~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysi
 
 % Exclude trials with obvious motion artefacts
 exclude_motart = 1;
-artefact_trials = {{'Culture 5/Wide', 2}, {'Culture 24/Wide', 3}, {'Culture 23/Wide', 3}}; % {Session, <trial no>}
+artefact_trials = {{'Culture 5/Wide', 2}, {'Culture 24/Wide', 3}, {'Culture 23/Wide', 3}, {'Culture 29/Wide', 1}, {'Culture 29/Indi', 1} }; % {Session, <trial no>}
 
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses
@@ -147,7 +147,7 @@ for i = 1:length({fov_results.name})
         traces = allresults.trial{j}.traces;
         
         % Perform the spike_detection_SNR
-        result = spike_detect_SNR_v3b(traces); % v3 was the original script used for the previous
+        result = spike_detect_SNR_v3b(traces, 4.5); % v3 was the original script used for the previous
         
         % Store each trial's spike and SNR data columnwise
         if j == 1

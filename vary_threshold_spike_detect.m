@@ -5,16 +5,18 @@ clc;
 %% Author notes for using script
 % Will be using the trial{1-3}.traces to do the spike detection
 
+t_start = tic();
 
 % Save figure directory
 save_fig_path = '~/handata_server/Pierre Fabris/DMD Project/Data Figures/';
 
+addpath('.');
 
 % Data directory
-invitro_data_path = '/home/pierfier/Projects/DMD Local Data/';
+invitro_data_path = '~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/';
+cd(invitro_data_path);
 
-
-ses=dir([invitro_data_path '/*.mat']);
+ses=dir(['*.mat']);
 
 
 % Find all of the 
@@ -56,29 +58,110 @@ if length(indiloc) ~= length(wideloc)
 	pause;
 end
 
-% Store the SNRs with the corresponding threshold, so {<threshold>, <SNRs>}
-indi_SNR = {};
-wide_SNR = {};
+% Store the SNRs and total number of spikes with the corresponding threshold, so {<threshold>, <SNRs>}
+indi_SNR = [];
+wide_SNR = [];
+indi_total_spikes = [];
+wide_total_spikes = [];
+
 
 % Range of threshold values to test
-up_thres = [0.1:.1:8];
+up_thres = [4:1:8];
 
 % Loop through all of the data files
 for id=1:length(indiloc)
+    
+    % Printing id
+    id
+   
 	indifile = load(ses(indiloc(id)).name);
 	widefile = load(ses(wideloc(id)).name);
 	indiresults = indifile.allresults;
 	wideresults = widefile.allresults;
+    
+	indi_fov_SNR = [];
+	indi_fov_num_spikes = [];
+	wide_fov_SNR = [];
+	wide_fov_num_spikes = [];
 
-	indi_temp = [];
-	% Calculate individual DMD SNRS 
-	parfor trial = 1:length(indiresults.trial)
+	% Calculate values for the individual DMD 
+	for trial_id = 2:length(indiresults.trial)
 		
-	end	
+        	% Store trial variables columnwise
+		trial_SNR = []; trial_num_spikes = [];
+		for thres = up_thres
+ 		   	% SNR
+			result = spike_detect_SNR_v3b(indiresults.trial{trial_id}.traces, thres);	
+			temp_var = result.spike_snr{:};
+        		trial_SNR = horzcat_pad(trial_SNR, temp_var(:));
 
-	% Calculate wide field SNRS 
-	parfor trial = 1:length(wideresults.trial)
+        		% Total spikes
+			trial_num_spikes = [trial_num_spikes, sum(sum(result.roaster))];
+		end
+
+        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, trial_SNR');
+		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes');  
+	end
+
+	% Calculate values for wide field 
+	for trial_id = 2:length(wideresults.trial)
 		
-	end	
+        		% Store trial variables columnwise
+			trial_SNR = []; trial_num_spikes = [];
+			for thres = up_thres
+ 			   	% SNR
+				result = spike_detect_SNR_v3b(wideresults.trial{trial_id}.traces, thres);	
+				temp_var = result.spike_snr{:};
+        			trial_SNR = horzcat_pad(trial_SNR, temp_var(:));
 
+        			% Total spikes
+				trial_num_spikes = [trial_num_spikes, sum(sum(result.roaster))];
+			end
+
+        		wide_fov_SNR = horzcat_pad(wide_fov_SNR, trial_SNR');
+			wide_fov_num_spikes = horzcat_pad(wide_fov_num_spikes, trial_num_spikes');  
+		
+	end
+	
+	%TODO I think I should just list all SNRs into
+	%indi_SNR = cat(3, indi_SNR, indi_fov_SNR);
+	%indi_total_spikes = cat(3, );
+	
+	% Store everything as one matrix (no individual FOVs are discernible)
+	indi_SNR = [indi_SNR, indi_fov_SNR];
+	indi_total_spikes = [indi_total_spikes, indi_fov_num_spikes];
+
+	wide_SNR = [wide_SNR, wide_fov_SNR];
+	wide_total_spikes = [wide_total_spikes, wide_fov_num_spikes];
+	
 end
+
+%% Plot the SNR
+figure;
+indi_err = nanstd(indi_SNR, 0, 2);
+wide_err = nanstd(wide_SNR, 0, 2);
+errorbar(up_thres', nanmedian(indi_SNR, 2), indi_err, '--r');
+hold on;
+errorbar(up_thres',nanmedian(wide_SNR, 2), wide_err, '--b');
+ylabel('SNRs');
+xlabel('Threshold Value');
+title_string = 'Detection Threshold vs. SNR';
+legend({'Indi', 'Wide'});
+title(title_string);
+
+
+% Plot the total number of spikes
+figure;
+plot(up_thres, sum(indi_total_spikes, 2), '--r');
+hold on;
+plot(up_thres, sum(wide_total_spikes, 2), '--b');
+ylabel('Number of spikes');
+xlabel('Threshold Value');
+legend({'Indi', 'Wide'});
+title_string = 'Detection Threshold vs. Number of Spikes';
+title(title_string);
+
+
+
+% Print the final time
+t_final = toc(t_start)
