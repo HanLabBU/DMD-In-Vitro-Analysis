@@ -105,7 +105,7 @@ for id=1:length(indiloc)
 
 	% Calculate values for wide field 
 	for trial_id = 2:length(wideresults.trial)
-		
+		 
         		% Store trial variables columnwise
 			trial_SNR = []; trial_num_spikes = [];
 			for thres = up_thres
