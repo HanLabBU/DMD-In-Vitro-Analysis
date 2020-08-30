@@ -79,48 +79,78 @@ for id=1:length(indiloc)
 	indiresults = indifile.allresults;
 	wideresults = widefile.allresults;
     
+
 	indi_fov_SNR = [];
 	indi_fov_num_spikes = [];
 	wide_fov_SNR = [];
 	wide_fov_num_spikes = [];
 
-	% Calculate values for the individual DMD 
-	for trial_id = 2:length(indiresults.trial)
+	% Calculate values for the individual DMD
+	for thres = up_thres
+		trial_num_spikes = [];
 		
-        	% Store trial variables columnwise
-		trial_SNR = []; trial_num_spikes = [];
-		for thres = up_thres
- 		   	% SNR
+		% Store each threshold SNR as [neuron, trial snrs]
+		thres_SNR = [];
+		for trial_id = 2:length(indiresults.trial)
+ 		   	
+			% SNR
 			result = spike_detect_SNR_v3b(indiresults.trial{trial_id}.traces, thres);	
-			temp_var = result.spike_snr{:};
-        		trial_SNR = horzcat_pad(trial_SNR, temp_var(:));
+			temp_var = result.spike_snr;
+			
+			% Extract and store each neuron's SNR into a matrix
+			% [snr vals, neuron]
+			neuron_snrs = [];
+			
+			% Iterating through each neuron's SNRs
+			for i=1:length(temp_var)
+				x = [temp_var{i, 1}'];
+                		if isempty(x), x = [NaN]; end;
+				neuron_snrs = horzcat_pad(neuron_snrs, x');
+			end
+			
+			thres_SNR = horzcat_pad(thres_SNR, neuron_snrs');
 
         		% Total spikes
 			trial_num_spikes = [trial_num_spikes, sum(sum(result.roaster))];
 		end
-
-        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, trial_SNR');
+			
+		% [neuron, threshold]
+        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmean(thres_SNR, 2));
 		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes');  
 	end
 
 	% Calculate values for wide field 
-	for trial_id = 2:length(wideresults.trial)
-		 
-        		% Store trial variables columnwise
-			trial_SNR = []; trial_num_spikes = [];
-			for thres = up_thres
- 			   	% SNR
-				result = spike_detect_SNR_v3b(wideresults.trial{trial_id}.traces, thres);	
-				temp_var = result.spike_snr{:};
-        			trial_SNR = horzcat_pad(trial_SNR, temp_var(:));
-
-        			% Total spikes
-				trial_num_spikes = [trial_num_spikes, sum(sum(result.roaster))];
-			end
-
-        		wide_fov_SNR = horzcat_pad(wide_fov_SNR, trial_SNR');
-			wide_fov_num_spikes = horzcat_pad(wide_fov_num_spikes, trial_num_spikes');  
+	for thres = up_thres
+		trial_num_spikes = [];
 		
+		% Store each threshold SNR as [neuron, trial snrs]
+		thres_SNR = [];
+		for trial_id = 2:length(wideresults.trial)
+ 		   	
+			% SNR
+			result = spike_detect_SNR_v3b(wideresults.trial{trial_id}.traces, thres);	
+			temp_var = result.spike_snr;
+			
+			% Extract and store each neuron's SNR into a matrix
+			% [snr vals, neuron]
+			neuron_snrs = [];
+			
+			% Iterating through each neuron's SNRs
+			for i=1:length(temp_var)
+				x = [temp_var{i, 1}'];
+                		if isempty(x), x = [NaN]; end;
+				neuron_snrs = horzcat_pad(neuron_snrs, x');	
+			end
+			
+			thres_SNR = horzcat_pad(thres_SNR, neuron_snrs');
+
+        		% Total spikes
+			trial_num_spikes = [trial_num_spikes, sum(sum(result.roaster))];
+		end
+			
+		% [neuron, threshold]
+        	wide_fov_SNR = horzcat_pad(wide_fov_SNR, nanmean(thres_SNR, 2));
+		wide_fov_num_spikes = horzcat_pad(wide_fov_num_spikes, trial_num_spikes');  
 	end
 	
 	%TODO I think I should just list all SNRs into
@@ -128,13 +158,17 @@ for id=1:length(indiloc)
 	%indi_total_spikes = cat(3, );
 	
 	% Store everything as one matrix (no individual FOVs are discernible)
-	indi_SNR = [indi_SNR, indi_fov_SNR];
-	indi_total_spikes = [indi_total_spikes, indi_fov_num_spikes];
+	indi_SNR = horzcat_pad(indi_SNR, indi_fov_SNR');
+%	indi_total_spikes = [indi_total_spikes, indi_fov_num_spikes];
 
-	wide_SNR = [wide_SNR, wide_fov_SNR];
-	wide_total_spikes = [wide_total_spikes, wide_fov_num_spikes];
+	wide_SNR = horzcat_pad(wide_SNR, wide_fov_SNR');
+%	wide_total_spikes = [wide_total_spikes, wide_fov_num_spikes];
 	
 end
+
+% DEBUG
+indi_si = size(indi_SNR)
+wide_si = size(wide_SNR)
 
 %% Plot the SNR
 figure;
@@ -150,18 +184,17 @@ legend({'Indi', 'Wide'});
 title(title_string);
 
 
-% Plot the total number of spikes
-figure;
-plot(up_thres, sum(indi_total_spikes, 2), '--r');
-hold on;
-plot(up_thres, sum(wide_total_spikes, 2), '--b');
-ylabel('Number of spikes');
-xlabel('Threshold Value');
-legend({'Indi', 'Wide'});
-title_string = 'Detection Threshold vs. Number of Spikes';
-title(title_string);
-
-
+% % Plot the total number of spikes
+% figure;
+% plot(up_thres, sum(indi_total_spikes, 2), '--r');
+% hold on;
+% plot(up_thres, sum(wide_total_spikes, 2), '--b');
+% ylabel('Number of spikes');
+% xlabel('Threshold Value');
+% legend({'Indi', 'Wide'});
+% title_string = 'Detection Threshold vs. Number of Spikes';
+% title(title_string);
+% 
 
 % Print the final time
 t_final = toc(t_start)

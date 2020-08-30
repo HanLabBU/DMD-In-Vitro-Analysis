@@ -125,55 +125,56 @@ for id=1:length(wideloc)
   if ignore_first == 1
 	start_trial = 2;
   end
-  tempIsnr = [];
-
   
-  % TODO I am wondering if there are a bunch of zeros that are being
-  % created instead of nans, and that is erasing some of the bigger spikes
-  % when being averaged. Confirmed there are a bunch of zeroes being stored
-  for tr=start_trial:size(  indifile.allresults.spike_snr,2)
-      temp = [];
-      for ne=mROI(:,1)' %1:size(  indifile.allresults.spike_snr,1)
-        temp = [temp; nanmean(indifile.allresults.spike_snr{ne,tr})];
-      end;
-      tempIsnr = [tempIsnr, temp];
+  % SNRS for each neuron are stored columnwise
+  tempIsnr = [];
+  for ne=mROI(:,1)' % 1:size(  indifile.allresults.spike_snr,1)
+    neuron_snrs = [];   
+    for tr=start_trial:size(indifile.allresults.spike_snr,2)
+        temp = indifile.allresults.spike_snr{ne, tr};
+        neuron_snrs = [neuron_snrs; temp(:)];
+    end
+    
+    tempIsnr = horzcat_pad(tempIsnr, neuron_snrs);
   end
     
     tempWsnr = [];
-  for tr=start_trial:size(  widefile.allresults.spike_snr,2)
-      temp = [];
-      for ne= mROI(:,1)' %1:size(  widefile.allresults.spike_snr,1)
-        temp = [temp; nanmean(widefile.allresults.spike_snr{ne,tr})];
-      end;
-      tempWsnr = [tempWsnr, temp];
+  for ne=mROI(:,1)' %1:size(widefile.allresults.spike_snr,1)
+    neuron_snrs = [];   
+    for tr=start_trial:size(widefile.allresults.spike_snr,2)
+        temp = widefile.allresults.spike_snr{ne, tr};
+        neuron_snrs = [neuron_snrs; temp(:)];
+    end
+    tempWsnr = horzcat_pad(tempWsnr, neuron_snrs);
   end
   
-    indiSNR= [indiSNR; nanmean(tempIsnr,2) ];
-    wideSNR= [wideSNR; nanmean(tempWsnr,2) ];
+    indiSNR= [indiSNR; nanmean(tempIsnr,1)'];
+    wideSNR= [wideSNR; nanmean(tempWsnr,1)'];
   
-    % Calculate the average event rate for each pattern
+    
+    %--Calculate the average event rate for each pattern--
     indi_spikerate_neuron = [];
     wide_spikerate_neuron = [];
     
     for neuron=1:size(indifile.allresults.roaster, 1)
         
-	fir_tr_size = 1;
-	
-	% Offset finding spikes from the size of the first trial
-	if ignore_first == 1
-		fir_tr_size = size(indifile.allresults.trial{1}.traces, 1) + 1;	
-	end
+        fir_tr_size = 1;
 
-	total_spikes = sum(indifile.allresults.roaster(neuron, fir_tr_size:end));
-        indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes*sample_frequency./(size(indifile.allresults.roaster, 2) - fir_tr_size - 1)];
-        
-	% Offset finding spikes from the size of the first trial
-	if ignore_first == 1
-		fir_tr_size = size(widefile.allresults.trial{1}.traces, 1) + 1;	
-	end
+        % Offset finding spikes from the size of the first trial
+        if ignore_first == 1
+            fir_tr_size = size(indifile.allresults.trial{1}.traces, 1) + 1;	
+        end
 
-	total_spikes = sum(widefile.allresults.roaster(neuron, fir_tr_size:end));
-        wide_spikerate_neuron = [wide_spikerate_neuron, total_spikes*sample_frequency./(size(widefile.allresults.roaster, 2) - fir_tr_size - 1)];
+        total_spikes = sum(indifile.allresults.roaster(neuron, fir_tr_size:end));
+            indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes*sample_frequency./(size(indifile.allresults.roaster, 2) - fir_tr_size - 1)];
+
+        % Offset finding spikes from the size of the first trial
+        if ignore_first == 1
+            fir_tr_size = size(widefile.allresults.trial{1}.traces, 1) + 1;	
+        end
+
+        total_spikes = sum(widefile.allresults.roaster(neuron, fir_tr_size:end));
+            wide_spikerate_neuron = [wide_spikerate_neuron, total_spikes*sample_frequency./(size(widefile.allresults.roaster, 2) - fir_tr_size - 1)];
     end
     
     % Calculate the average spike event rate for the whole field of view
@@ -303,10 +304,10 @@ saveas(gcf, [save_fig_path 'Photobleaching\SVG Format\' title_string '.svg']);
 % Plot the boxplot SNRs
 figure('COlor','w', 'Renderer', 'painters'),plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
 legend indi wide
-[h,p,ci,stats] = ttest(indiSNR,wideSNR)
+[h,p,ci,stats] = ttest(indiSNR(:), wideSNR(:))
 
 figure('COlor','w')
-boxplot([indiSNR, wideSNR], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
+boxplot(horzcat_pad(indiSNR, wideSNR), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
 title_string = 'Boxplots of SNR';
 title([title_string ' p= ' num2str(p)]);
 
