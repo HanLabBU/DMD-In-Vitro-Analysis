@@ -115,8 +115,8 @@ for id=1:length(indiloc)
 		end
 			
 		% [neuron, threshold]
-        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmean(thres_SNR, 2));
-		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes');  
+        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmedian(thres_SNR, 2));
+		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes'); 
 	end
 
 	% Calculate values for wide field 
@@ -138,7 +138,7 @@ for id=1:length(indiloc)
 			% Iterating through each neuron's SNRs
 			for i=1:length(temp_var)
 				x = [temp_var{i, 1}'];
-                		if isempty(x), x = [NaN]; end;
+                if isempty(x), x = [NaN]; end;
 				neuron_snrs = horzcat_pad(neuron_snrs, x');	
 			end
 			
@@ -149,7 +149,7 @@ for id=1:length(indiloc)
 		end
 			
 		% [neuron, threshold]
-        	wide_fov_SNR = horzcat_pad(wide_fov_SNR, nanmean(thres_SNR, 2));
+        	wide_fov_SNR = horzcat_pad(wide_fov_SNR, nanmedian(thres_SNR, 2));
 		wide_fov_num_spikes = horzcat_pad(wide_fov_num_spikes, trial_num_spikes');  
 	end
 	
