@@ -2,7 +2,7 @@
 % % in vivo data
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\invivoDMD\')
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\comp_wide_indi\')
-
+clc;
 close all;
 clear all;
  
@@ -13,7 +13,7 @@ addpath('.');
 cd('~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/');
 
 % Folder to save figures
-%save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Figures\';
+%save_fig_path = '\\engnas.bu.edu\research\eng_research_handata\Pierre Fabris\DMD Project\Data Fi226 - 67 (NaNs) = gures\';
 save_fig_path = '~/handata_server/Pierre Fabris/DMD Project/Data Figures/';
 
 % Ignore the first trial across each FOV for photobleaching estimation
@@ -65,6 +65,9 @@ indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
 indi_SRate = []; wide_SRate = [];
 indi_samp = []; wide_samp = [];
 fov_label = {};
+indi_no_spike = [];
+wide_no_spike = [];
+
 for id=1:length(wideloc)
     indi_temp = [];
     wide_temp = [];
@@ -126,9 +129,15 @@ for id=1:length(wideloc)
 	start_trial = 2;
   end
   
+  %-- Average neuron's SNRs and store for plotting
+  
+  % Checking which neurons did not spike for a given session
+%   temp_indi_nos = [];
+%   temp_wide_nos = [];
+  
   % SNRS for each neuron are stored columnwise
   tempIsnr = [];
-  for ne=mROI(:,1)' % 1:size(  indifile.allresults.spike_snr,1)
+  for ne=mROI(:,1)' % 1:size(  indifile.allresults.spike_snr,1) 
     neuron_snrs = [];   
     for tr=start_trial:size(indifile.allresults.spike_snr,2)
         temp = indifile.allresults.spike_snr{ne, tr};
@@ -139,23 +148,28 @@ for id=1:length(wideloc)
   end
     
     tempWsnr = [];
-  for ne=mROI(:,1)' %1:size(widefile.allresults.spike_snr,1)
-    neuron_snrs = [];   
+  for ne=mROI(:,1)' %1:size(widefile.allresults.spike_snr,1) 
+    neuron_snrs = [];
     for tr=start_trial:size(widefile.allresults.spike_snr,2)
         temp = widefile.allresults.spike_snr{ne, tr};
         neuron_snrs = [neuron_snrs; temp(:)];
     end
+    
     tempWsnr = horzcat_pad(tempWsnr, neuron_snrs);
   end
   
     indiSNR= [indiSNR; nanmean(tempIsnr,1)'];
     wideSNR= [wideSNR; nanmean(tempWsnr,1)'];
   
+%     indi_no_spike = horzcat_pad(indi_no_spike, temp_indi_nos');
+%     wide_no_spike = horzcat_pad(wide_no_spike, temp_wide_nos');
     
     %--Calculate the average event rate for each pattern--
     indi_spikerate_neuron = [];
     wide_spikerate_neuron = [];
     
+    %TODO this may need to be adjusted for the different number of trails
+    %between individual and wide field
     for neuron=1:size(indifile.allresults.roaster, 1)
         
         fir_tr_size = 1;
@@ -164,7 +178,7 @@ for id=1:length(wideloc)
         if ignore_first == 1
             fir_tr_size = size(indifile.allresults.trial{1}.traces, 1) + 1;	
         end
-
+	
         total_spikes = sum(indifile.allresults.roaster(neuron, fir_tr_size:end));
             indi_spikerate_neuron = [indi_spikerate_neuron, total_spikes*sample_frequency./(size(indifile.allresults.roaster, 2) - fir_tr_size - 1)];
 
@@ -301,13 +315,14 @@ saveas(gcf, [save_fig_path 'Photobleaching\SVG Format\' title_string '.svg']);
 %saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
 
 
-% Plot the boxplot SNRs
-figure('COlor','w', 'Renderer', 'painters'),plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
-legend indi wide
-[h,p,ci,stats] = ttest(indiSNR(:), wideSNR(:))
+% % Plot the boxplot SNRs
+% figure('COlor','w', 'Renderer', 'painters'),plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
+% legend indi wide
+disp('SNR statistics:');
+[h,p,ci,stats] = ttest(indiSNR, wideSNR)
 
 figure('COlor','w')
-boxplot(horzcat_pad(indiSNR, wideSNR), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
+boxplot(horzcat_pad(indiSNR(:), wideSNR(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
 title_string = 'Boxplots of SNR';
 title([title_string ' p= ' num2str(p)]);
 
@@ -332,12 +347,12 @@ saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Event Rate\SVG Format\' title_string '.svg']);
 
-%% Plot the distribution of spike amplitudes
-figure('Renderer', 'painters');
-boxplot(horzcat_pad(indi_samp(:), wide_samp(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
-title_string = ['Spike amplitude Individual DMD vs. Wide Field'];
-ylabel('delta F');
-title(title_string);
-
-saveas(gcf, [save_fig_path 'Spike Amplitude\Jpeg Format\' title_string '.jpg']);
-saveas(gcf, [save_fig_path 'Spike Amplitude\SVG Format\' title_string '.svg']);
+% %% Plot the distribution of spike amplitudes
+% figure('Renderer', 'painters');
+% boxplot(horzcat_pad(indi_samp(:), wide_samp(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
+% title_string = ['Spike amplitude Individual DMD vs. Wide Field'];
+% ylabel('delta F');
+% title(title_string);
+% 
+% saveas(gcf, [save_fig_path 'Spike Amplitude\Jpeg Format\' title_string '.jpg']);
+% saveas(gcf, [save_fig_path 'Spike Amplitude\SVG Format\' title_string '.svg']);

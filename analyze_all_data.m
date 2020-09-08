@@ -121,7 +121,13 @@ for i = 1:length({fov_results.name})
         max_trial = max(max_trial, size(allresults.trial{j}.traces, 1));
     end
     
-    trial_traces = NaN(max_trial, size(allresults.trial{1}.traces, 2));
+    % Check to make sure trials are stored
+    if length(allresults.trial) == 0
+        trial_traces = [];
+    else
+        trial_traces = NaN(max_trial, size(allresults.trial{1}.traces, 2));
+    end
+    
     for j=1:length(allresults.trial)
         trial_traces(1:size(allresults.trial{j}.traces, 1), :, j) = allresults.trial{j}.traces;
     end

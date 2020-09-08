@@ -71,7 +71,7 @@ end
 %    end
 %end
 
- sc=0.1625*2; % micrometer per pixel 40x
+ sc= % Value if it was 40x for whole system 0.1625*2; % micrometer per pixel 40x
 %% seelct matching ROI
 %indiB=[];wideB=[]; indiSNR=[]; wideSNR=[];
 cindi=[];cwide=[]; rdist=[];

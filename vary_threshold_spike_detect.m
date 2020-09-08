@@ -66,7 +66,7 @@ wide_total_spikes = [];
 
 
 % Range of threshold values to test
-up_thres = [4:1:8];
+up_thres = [3:0.5:6];
 
 % Loop through all of the data files
 for id=1:length(indiloc)
@@ -115,7 +115,7 @@ for id=1:length(indiloc)
 		end
 			
 		% [neuron, threshold]
-        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmedian(thres_SNR, 2));
+        	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmean(thres_SNR, 2));
 		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes'); 
 	end
 
@@ -138,7 +138,7 @@ for id=1:length(indiloc)
 			% Iterating through each neuron's SNRs
 			for i=1:length(temp_var)
 				x = [temp_var{i, 1}'];
-                if isempty(x), x = [NaN]; end;
+                		if isempty(x), x = [NaN]; end;
 				neuron_snrs = horzcat_pad(neuron_snrs, x');	
 			end
 			
@@ -149,7 +149,7 @@ for id=1:length(indiloc)
 		end
 			
 		% [neuron, threshold]
-        	wide_fov_SNR = horzcat_pad(wide_fov_SNR, nanmedian(thres_SNR, 2));
+        	wide_fov_SNR = horzcat_pad(wide_fov_SNR, nanmean(thres_SNR, 2));
 		wide_fov_num_spikes = horzcat_pad(wide_fov_num_spikes, trial_num_spikes');  
 	end
 	
@@ -166,9 +166,6 @@ for id=1:length(indiloc)
 	
 end
 
-% DEBUG
-indi_si = size(indi_SNR)
-wide_si = size(wide_SNR)
 
 %% Plot the SNR
 figure;
@@ -183,6 +180,10 @@ title_string = 'Detection Threshold vs. SNR';
 legend({'Indi', 'Wide'});
 title(title_string);
 
+% DEBUG
+% Print the 4.5 median values
+indi_med = nanmedian(indi_SNR(find(up_thres == 4.5), :), 2)
+wide_med = nanmedian(wide_SNR(find(up_thres == 4.5), :), 2)
 
 % % Plot the total number of spikes
 % figure;
