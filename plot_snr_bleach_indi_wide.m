@@ -116,8 +116,8 @@ for id=1:length(wideloc)
       end
   end
   
-  indiAllB = horzcat_pad(indiAllB, indi_temp(:));
-  wideAllB = horzcat_pad(wideAllB, wide_temp(:));
+  indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1)  );
+  wideAllB = horzcat_pad(wideAllB, nanmean(wide_temp,1));
   
   % Store the FOV labels
   fov_label = cat(2, fov_label, [indifile.allresults.fov_name ' ' indifile.allresults.type]);
@@ -192,8 +192,8 @@ for id=1:length(wideloc)
     end
     
     % Calculate the average spike event rate for the whole field of view
-    indi_SRate = [indi_SRate, nanmean(indi_spikerate_neuron)];
-    wide_SRate = [wide_SRate, nanmean(wide_spikerate_neuron)];
+    indi_SRate = [indi_SRate, indi_spikerate_neuron];
+    wide_SRate = [wide_SRate, wide_spikerate_neuron];
     
     % Store the spike amplitudes
     temp = [indifile.allresults.spike_amplitude{:}];
@@ -206,8 +206,10 @@ end
 
 
 %% PLOT the bleaching decay boxplots between DMD and Wide Field
-figure('COlor','w'),plot(indiAllB(:),'r'); hold on,plot(wideAllB(:),'k')
-legend indi wide
+% figure('COlor','w'),plot(indiAllB(:),'r'); hold on,plot(wideAllB(:),'k')
+% legend indi wide
+% title('Photodecay line plot');
+disp('Photodecay statistics');
 [h,p,ci,stats] = ttest(indiAllB(:),wideAllB(:))
 
 %M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
@@ -323,6 +325,7 @@ disp('SNR statistics:');
 
 figure('COlor','w')
 boxplot(horzcat_pad(indiSNR(:), wideSNR(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
+ylim([0, 12]);
 title_string = 'Boxplots of SNR';
 title([title_string ' p= ' num2str(p)]);
 
@@ -335,7 +338,9 @@ saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
 
 % Will be tricky because the event rate has to be over the total
 % time of imaging and trials had different lengths
+disp("Spike-Rate Statistics:");
 [h,p,ci,stats] = ttest(indi_SRate(:), wide_SRate(:))
+
 figure('Renderer', 'painters');
 boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
 %hold on;

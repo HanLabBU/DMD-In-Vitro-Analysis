@@ -5,7 +5,7 @@ clear all;
 % In vitro data network
 root_path = '~/handata_server/Pierre Fabris/DMD Project/v2 script Trace Extraction/In vitro/';
 
-% Folder to save all analysis data
+% Folder to save all analysis datak
 save_all_path = '~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysis/';
 
 % Exclude trials with obvious motion artefacts

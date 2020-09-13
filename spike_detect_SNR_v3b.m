@@ -6,7 +6,7 @@ addpath(genpath('~/handata_server/EricLowet/Scripts/'))
  
 FS=500; % sampling frequency
 addpath(genpath('~/handata_server/Hua-an Tseng/Code/other/eegfilt/'))
-plot_yes=1;
+plot_yes=0;
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;
     end
@@ -95,8 +95,8 @@ for neuron=1:size(traces,2)
 
 %%%%%%%%%%%%%
  trace_val=pre_d_trace;
- %up_idx_list = find(pre_d_trace>(nanmean(d_u_f_trace)+event_parameter.up_threshold_value));
- up_idx_list= find((current_trace)>(up_threshold*current_trace_noise) ); 
+ up_idx_list = find(pre_d_trace>(nanmean(d_u_f_trace)+event_parameter.up_threshold_value)); % <-- Use this one
+ %up_idx_list= find((current_trace)>(up_threshold*current_trace_noise) );
  
  for up_idx=up_idx_list'
              %   if up_idx>2 & (up_idx+1)<=numel(d_u_f_trace) & d_u_f_trace(up_idx)>0 %& d_u_f_trace(up_idx+1)<0 %& post_d_trace(up_idx+1)<(nanmean(d_u_f_trace)-event_parameter.down_threshold_value)% & ~isnan(denoise_trace(up_idx))
@@ -157,7 +157,7 @@ result.orig_trace(neuron,:) =current_trace;
 result.denoise_trace(neuron,:) =denoise_trace;
 result.trace_ws(neuron,:) =    tracews;
 result.orig_traceDN(neuron,:) =v1;
-
+result.orig_trace_untrended(neuron,:) =current_traceOrig;
 result.roaster(neuron,:) = event.roaster;
 result.roaster2(neuron,:) = event.roaster2;
 
