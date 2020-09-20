@@ -214,14 +214,14 @@ disp('Photodecay statistics');
 
 %M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
 figure('Color','w','Renderer', 'painters')
-M=[ ((1-(indiAllB(:))).*-1) , ((1-(wideAllB(:))).*-1)].*100 ;
+M=[ ((1-(indiAllB(:))).*1) , ((1-(wideAllB(:))).*1)].*100 ;
 boxplot(M, {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = 'Boxplot of photodecay';
 title([title_string ' p= ' num2str(p)]);
 
-saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-saveas(gcf, [save_fig_path 'Photobleaching\SVG Format\' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Photobleaching/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Photobleaching/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Photobleaching/SVG Format/' title_string '.svg']);
 
 
 %% Violin plots of photobleaching
@@ -329,9 +329,9 @@ ylim([0, 12]);
 title_string = 'Boxplots of SNR';
 title([title_string ' p= ' num2str(p)]);
 
-saveas(gcf, [save_fig_path 'SNR\Jpeg Format\' title_string '.jpg']);
-saveas(gcf, [save_fig_path 'SNR\EPS Format\' title_string '.eps'], 'epsc');
-saveas(gcf, [save_fig_path 'SNR\SVG Format\' title_string '.svg']);
+saveas(gcf, [save_fig_path 'SNR/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'SNR/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'SNR/SVG Format/' title_string '.svg']);
 
 
 %% Plot the number of resolvable event rate between individual and wide field
@@ -348,9 +348,9 @@ boxplot([indi_SRate', wide_SRate'], {'Individual DMD', 'Wide Field'}, 'notch', '
 title_string = 'Resolved Spike Rate Individual DMD vs. Wide Field';
 title([title_string ' p=' num2str(p)]);
 ylabel('Spike Rate (Hz)');
-saveas(gcf, [save_fig_path 'Event Rate\Jpeg Format\' title_string '.jpg']);
-saveas(gcf, [save_fig_path 'Event Rate\EPS Format\' title_string '.eps'], 'epsc');
-saveas(gcf, [save_fig_path 'Event Rate\SVG Format\' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Event Rate/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Event Rate/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Event Rate/SVG Format/' title_string '.svg']);
 
 % %% Plot the distribution of spike amplitudes
 % figure('Renderer', 'painters');

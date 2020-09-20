@@ -6,7 +6,7 @@ addpath(genpath('~/handata_server/EricLowet/Scripts/'))
  
 FS=500; % sampling frequency
 addpath(genpath('~/handata_server/Hua-an Tseng/Code/other/eegfilt/'))
-plot_yes=0;
+plot_yes=1;
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;
     end
@@ -171,29 +171,89 @@ end
 
 
 if plot_yes==1
+    
+    
 rast=result.roaster;
 rast(rast==0)=NaN;
-% figure,
+
+disp('Show figure');
+
+figure('Color','w', 'Renderer', 'painters');
+subplot(1,3,1:2)
+signal_adj = 20;
+for ind=1:size(result.orig_trace,1)
+% Original plot procedure
+%plot(((result.denoise_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on, 
+% Simple division plot
+%plot((result.orig_trace(ind, :) - nanmean(result.orig_trace(ind, :)) )./50 + ind, 'r');
+
+% Plots the trace as the signal/noise divide by some factor
+plot( ((result.orig_trace(ind,:)./result.trace_noise(ind)))./signal_adj + ind,'k');
+
+hold on, %plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
+
+end;
+
+% Scale bars for all traces
+posx = 100;
+posy = -1;
+time_scale = 500; %  
+SNR_scale = 14./signal_adj; % SNR of 12
+plot([posx, posx + time_scale], [posy, posy], 'r-', 'LineWidth', 2);
+hold on;
+plot([posx, posx], [posy, posy + SNR_scale], 'r-', 'LineWidth', 2);
+hold on;
+ht = text(posx - 350, posy, ['SNR ' num2str(SNR_scale*signal_adj)]);
+set(ht,'Rotation', 90);
+hold on;
+text(posx + 50, posy - 1, [num2str(time_scale/500) ' s']);
+
+% % Example from Culture 7 Individual Trial 2 spike-waveform scale bar
+% posx = 7000;
+% posy = 3.8;
+% time_scale = 50; % 
+% SNR_scale = 5./signal_adj; % SNR of 12
+% plot([posx, posx + time_scale], [posy, posy], 'r-', 'LineWidth', 2);
+% hold on;
+% plot([posx, posx], [posy, posy + SNR_scale], 'r-', 'LineWidth', 2);
+% hold on;
+% ht = text(posx - 50, posy, ['SNR ' num2str(SNR_scale*signal_adj)]);
+% set(ht,'Rotation', 90);
+% hold on;
+% text(posx + 50, posy - 0.005, [num2str(time_scale/.5) ' ms']);
+
+% % Example from Culture 7 Wide Field Trial 2 spike-waveform scale bar
+% posx = 7232;
+% posy = 3.9;
+% time_scale = 50; % 
+% SNR_scale = 5./signal_adj; % SNR of 5
+% plot([posx, posx + time_scale], [posy, posy], 'r-', 'LineWidth', 2);
+% hold on;
+% plot([posx, posx], [posy, posy + SNR_scale], 'r-', 'LineWidth', 2);
+% hold on;
+% ht = text(posx - 50, posy, ['SNR ' num2str(SNR_scale*signal_adj)]);
+% set(ht,'Rotation', 90);
+% hold on;
+% text(posx + 50, posy - 0.005, [num2str(time_scale/.5) ' ms']);
+
+% % Show detected spikes
+% hold on;
+% 
 % for ind=1:size(rast,1)
-% plot(rast(ind,:) + ind ,'.k'); hold on,
+% plot(rast(ind,:) + (ind - .75),'.r'); hold on,
 % end
 
-disp('Showing Traces and SNR Figure');
-figure('COlor','w')
-subplot(1,3,1:2)
-for ind=1:size(result.orig_trace,1)
-plot(((result.orig_trace(ind,:)./result.trace_noise(ind)))./15+ ind,'k'); hold on,
-hold on,plot((rast(ind,:)+result.trace_noise(ind))./15 + ind ,'.r','Markersize',10); hold on,
-end;axis tight;xlabel('Time'); ylabel('neuron')
+axis tight;
+set(gca,'xticklabel',{[]});
+set(gca, 'YTick', [1:size(result.orig_trace, 1)]);
+
+xlabel('Time'); ylabel('neuron')
 subplot(1,3,3)
 clear SNR_val
 for ind=1:length(result.spike_snr)
 SNR_val(ind)= mean(result.spike_snr{ind})
 end
 bar(SNR_val');xlabel('neuron'); ylabel('SNR')
-
-
-
 
 end
 
