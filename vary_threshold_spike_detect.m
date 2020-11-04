@@ -116,7 +116,7 @@ for id=1:length(indiloc)
 			
 		% [neuron, threshold]
         	indi_fov_SNR = horzcat_pad(indi_fov_SNR, nanmean(thres_SNR, 2));
-		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes'); 
+		indi_fov_num_spikes = horzcat_pad(indi_fov_num_spikes, trial_num_spikes');
 	end
 
 	% Calculate values for wide field 

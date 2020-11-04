@@ -6,7 +6,7 @@ addpath(genpath('~/handata_server/EricLowet/Scripts/'))
  
 FS=500; % sampling frequency
 addpath(genpath('~/handata_server/Hua-an Tseng/Code/other/eegfilt/'))
-plot_yes=1;
+plot_yes=0;
   if nargin<3 || isempty(down_threshold) 
         down_threshold = 4;
     end

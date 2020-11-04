@@ -71,7 +71,7 @@ end
 %    end
 %end
 
- sc= % Value if it was 40x for whole system 0.1625*2; % micrometer per pixel 40x
+ sc= 0.1625*2 %362/1152;% Value if it was 40x for whole system 0.1625*2; % micrometer per pixel 40x
 %% seelct matching ROI
 %indiB=[];wideB=[]; indiSNR=[]; wideSNR=[];
 cindi=[];cwide=[]; rdist=[];
@@ -240,7 +240,7 @@ disp('Subthreshold correlation over distance (Comparing DMD vs. Wide Field) Kolm
 sorted_cindi = cindi(sidx);
 sorted_cwide = cwide(sidx);
 
-[h, p] = kstest2(sorted_cindi, sorted_cwide)
+[h, p, ks2stat] = kstest2(sorted_cindi, sorted_cwide)
 
 % Plot subthreshold cross correlation over binned distance
 bin_size = 30; % In um
@@ -320,7 +320,6 @@ disp('Kruskal-Wallis test on subthreshold DMD:');
 
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
-
 
 % Plot spike-spike correlations over binned distances
 indi_corr_bins = [];
@@ -467,7 +466,7 @@ title('Shuffled Slope Difference From Subthreshold Vm (DMD - Wide Field)');
 
 % Run statistical test to show difference between the regressed slopes
 disp('Z test of the observed difference (DMD - Wide Field) in regressed slopes of subthreshold correlation to 1,000 shuffled regressions:');
-[h, p] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
+[h, p, ci, zval] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
 
 %TODO save the shuffled plots
 
@@ -514,8 +513,7 @@ disp('Spike-spike correlation over distance KS test:');
 sorted_cindiS = cindiS(sidx);
 sorted_cwideS = cwideS(sidx);
 
-[h, p] = kstest2(sorted_cindiS, sorted_cwideS)
-
+[h, p, ks2stat] = kstest2(sorted_cindiS, sorted_cwideS)
 
 %%--Perform shuffling of the data to test significance in the calculated regression lines
 indi_shuf_slopes = [];
@@ -601,8 +599,7 @@ title('Shuffled Slope Difference from spike-spike (Individual - Wide Field)');
 
 % Run statistical test to show difference between the regressed slopes (spike-spike)
 disp('Z test of the observed difference (DMD - Wide Field) in regressed slopes of spike-spike correlation to 1,000 shuffled regressions:');
-[h, p] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
-
+[h, p, ci, zval] = ztest(fitResults1(1) - fitResults2(1), nanmean(slope_diff), nanstd(slope_diff))
 
 %TODO save the shuffled plots
 
