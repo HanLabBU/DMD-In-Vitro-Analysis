@@ -116,7 +116,40 @@ for id=1:length(wideloc)
       end
   end
   
-  indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1)  );
+  % Get the length of each trial for each condition
+  indi_tr_lengths = [];
+  wide_tr_lengths = [];
+  if ignore_first == 1
+      start_tr = 2;
+  else
+      start_tr = 1;
+  end
+  for tr=start_tr:length(indifile.allresults.trial)
+    if ignore_24 ~= 1 || contains(indifile.allresults.fov_name, '24') ~= 1 || start_tr ~= 2 
+        num_rois = length(mROI(:, 1));
+        trial_length = size(indifile.allresults.trial{tr}.traces, 1);
+        trial_length = trial_length/sample_frequency;
+        indi_tr_lengths = [indi_tr_lengths; repmat(trial_length, 1, num_rois)];
+    else
+        % DEBUG
+        disp('Skipped');
+    end
+  end
+  for tr=start_tr:length(widefile.allresults.trial)
+    if ignore_24 ~= 1 || contains(widefile.allresults.fov_name, '24') ~= 1 || start_tr ~= 2 
+        num_rois = length(mROI(:, 1));
+        trial_length = size(widefile.allresults.trial{tr}.traces, 1);
+        trial_length = trial_length/sample_frequency;
+        wide_tr_lengths = [wide_tr_lengths; repmat(trial_length, 1, num_rois)];
+    end
+  end
+   
+  indi_temp = (1 - indi_temp).*-100./indi_tr_lengths;
+  wide_temp = (1 - wide_temp).*-100./wide_tr_lengths;
+  
+  % Convert bleaching ratios to percent decay/s (over the course of 20 second trial)
+  
+  indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1));
   wideAllB = horzcat_pad(wideAllB, nanmean(wide_temp,1));
   
   % Store the FOV labels
@@ -214,7 +247,7 @@ disp('Photodecay statistics');
 
 %M=[ ((1-(indiB)).*-1)'  ,((1-(wideB)).*-1)'].*100;
 figure('Color','w','Renderer', 'painters')
-M=[ ((1-(indiAllB(:))).*1) , ((1-(wideAllB(:))).*1)].*100 ;
+M=[ indiAllB(:) , wideAllB(:)];
 boxplot(M, {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k')
 title_string = 'Boxplot of photodecay';
 title([title_string ' p= ' num2str(p)]);
