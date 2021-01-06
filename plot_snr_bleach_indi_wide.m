@@ -91,11 +91,11 @@ for id=1:length(wideloc)
     mROI=[mROI; [ id3 wloc]];end
     end
     
-  if ignore_first == 1 && size(indifile.allresults.bleach, 1) > 1
+  if ignore_first == 1 & size(indifile.allresults.bleach, 1) > 1
     % Store the bleaching values except for the first trial
     
     % Ignore the second trial of 24 individual
-    if ignore_24 == 1 && contains(indifile.allresults.fov_name, '24') == 1
+    if ignore_24 == 1 & contains(indifile.allresults.fov_name, '24') == 1
         indi_temp = indifile.allresults.bleach(3:end, mROI(:, 1));
         wide_temp = widefile.allresults.bleach(3:end, mROI(:, 1));
     else
@@ -105,7 +105,7 @@ for id=1:length(wideloc)
     
   else
     
-      if ignore_24 == 1 && contains(indifile.allresults.fov_name, '24') == 1
+      if ignore_24 == 1 & contains(indifile.allresults.fov_name, '24') == 1
         % Ignore the second trial of the bleaching values
         indi_temp = indifile.allresults.bleach([1, 3:end], mROI(:, 1));
         wide_temp = widefile.allresults.bleach([1, 3:end], mROI(:, 1));
@@ -116,7 +116,8 @@ for id=1:length(wideloc)
       end
   end
   
-  % Get the length of each trial for each condition
+  % Get the length of each trial for each condition as a matrix for each
+  % ROI
   indi_tr_lengths = [];
   wide_tr_lengths = [];
   if ignore_first == 1
@@ -125,18 +126,15 @@ for id=1:length(wideloc)
       start_tr = 1;
   end
   for tr=start_tr:length(indifile.allresults.trial)
-    if ignore_24 ~= 1 || contains(indifile.allresults.fov_name, '24') ~= 1 || start_tr ~= 2 
+    if ignore_24 ~= 1 | contains(indifile.allresults.fov_name, '24') ~= 1 | tr ~= 2 
         num_rois = length(mROI(:, 1));
         trial_length = size(indifile.allresults.trial{tr}.traces, 1);
         trial_length = trial_length/sample_frequency;
         indi_tr_lengths = [indi_tr_lengths; repmat(trial_length, 1, num_rois)];
-    else
-        % DEBUG
-        disp('Skipped');
     end
   end
   for tr=start_tr:length(widefile.allresults.trial)
-    if ignore_24 ~= 1 || contains(widefile.allresults.fov_name, '24') ~= 1 || start_tr ~= 2 
+    if ignore_24 ~= 1 | contains(widefile.allresults.fov_name, '24') ~= 1 | tr ~= 2 
         num_rois = length(mROI(:, 1));
         trial_length = size(widefile.allresults.trial{tr}.traces, 1);
         trial_length = trial_length/sample_frequency;
@@ -144,13 +142,23 @@ for id=1:length(wideloc)
     end
   end
    
+  % Convert bleaching ratios to percent decay/s (over the course of 20 second trial)
   indi_temp = (1 - indi_temp).*-100./indi_tr_lengths;
   wide_temp = (1 - wide_temp).*-100./wide_tr_lengths;
   
-  % Convert bleaching ratios to percent decay/s (over the course of 20 second trial)
-  
   indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1));
   wideAllB = horzcat_pad(wideAllB, nanmean(wide_temp,1));
+  
+  %DEBUG some trials are extremely long
+  %TODO figure out which trial has longer than 20 sec trials
+  if indi_tr_lengths ~= 20
+      indi_tr_lengths
+  end
+  
+  if wide_tr_lengths ~= 20
+      wide_tr_lengths
+  end
+  
   
   % Store the FOV labels
   fov_label = cat(2, fov_label, [indifile.allresults.fov_name ' ' indifile.allresults.type]);

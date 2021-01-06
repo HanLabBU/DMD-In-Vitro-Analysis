@@ -2,7 +2,6 @@
 % In vivo path
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\invivoDMD\')
 %cd('\\engnas.bu.edu\research\eng_research_handata\EricLowet\DMD\comp_wide_indi\')
-
 close all;
 clear all;
 
@@ -215,7 +214,7 @@ cwide = cwide(use_idx);
 
 %% Plot all of the data
 % PLOT subthreshold cross correlation
-figure('Color','w', 'Renderer', 'painters')
+figure('Color','w', 'Renderer', 'painters', 'Position', [0 0 900 800]);
 plot(rdist,cindi,'.r','Markersize',10)
 hold on, plot(rdist,cwide,'.b','Markersize',10)
 fitResults1 = polyfit(rdist,cindi,1);
@@ -229,9 +228,9 @@ legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResul
 
 title_string = ['Cross correlation subthreshold (Vm) indi vs. wide'];
 title(title_string);
-%saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 %  Kolmogorov-Smirnov test for difference in the two correlations over
 %  distance
@@ -295,9 +294,9 @@ ylabel('Pearson''s correlation');
 title_string = ['Subthreshold Vm cross correlation over binned distance ' num2str(bin_size)];
 title(title_string);
 
-%saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
 % Statistical test for subthreshold correlations from binned distances
 % Will keep the columns as DMD and wide field, because that is the factor
@@ -379,9 +378,9 @@ ylabel('Pearson''s correlation');
 title_string = ['Spike-Spike cross correlation over binned distance ' num2str(bin_size)];
 title(title_string);
 
-%saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
-%saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
 
 %--Perform shuffling of the data to test significance in the calculated regression lines
@@ -491,7 +490,7 @@ title([ 'p= ' num2str(p)])
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
 
-figure('Color','w', 'Renderer', 'painters')
+figure('Color','w', 'Renderer', 'painters', 'Position', [0 0 900 800])
 plot(rdist2,cindiS,'.r','Markersize',10)
 hold on,plot(rdist2,cwideS,'.b','Markersize',10)
 fitResults1 = polyfit(rdist2,cindiS,1);
@@ -501,14 +500,15 @@ fitResults2 = polyfit(rdist2,cwideS,1);
 yplot1 = polyval(fitResults2,rdist2);
 plot(rdist2,yplot1,'-b','Linewidth',2)
 xlabel('Distance (\mum)');
+ylim([-0.05, 0.55]);
 ylabel('Corr');
 legend({['indi slope=' num2str(fitResults1(1))], ['wide slope=' num2str(fitResults2(1))]});
 title_string = ['Cross correlation spike-spike indi vs. wide'];
 title(title_string);
 
-%saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
-%saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']);
+saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
+saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 
 %  Kolmogorov-Smirnov test for difference in the two correlations over
 %  distance
@@ -518,6 +518,15 @@ sorted_cindiS = cindiS(sidx);
 sorted_cwideS = cwideS(sidx);
 
 [h, p, ks2stat] = kstest2(sorted_cindiS, sorted_cwideS)
+
+%---- Compare the Vm-Vm correlation with the spike-spike correlations
+disp('Vm vs spike correlations for widefield:');
+[h, p, ci, stats] = ttest2(cwide, cwideS)
+
+
+disp('Vm vs spike correlations for targeted:');
+[h, p, ci, stats] = ttest2(cindi, cindiS)
+
 
 %%--Perform shuffling of the data to test significance in the calculated regression lines
 % indi_shuf_slopes = [];

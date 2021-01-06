@@ -69,7 +69,7 @@ wide_total_spikes = [];
 up_thres = [3:0.5:6];
 
 % Loop through all of the data files
-for id=1:length(indiloc)
+for id=1:1 % TODO change back to length(indiloc) 
     
     % Printing id
     id
@@ -78,12 +78,37 @@ for id=1:length(indiloc)
 	widefile = load(ses(wideloc(id)).name);
 	indiresults = indifile.allresults;
 	wideresults = widefile.allresults;
-    
+
 
 	indi_fov_SNR = [];
 	indi_fov_num_spikes = [];
 	wide_fov_SNR = [];
 	wide_fov_num_spikes = [];
+
+    % Find all of the matching ROIs for corresponding 
+    mROI = []; % [<corresponding neurons>, <indi roi id, matched wide roi id>]
+    
+    indiCentroids = [];
+    for roi_id = 1:length(indifile.allresults.roi)
+        [x y] = find(indifile.allresults.roi{roi_id});
+        indiCentroids = [indiCentroids; round(mean([x, y], 1))];    
+    end
+    
+    wideCentroids = [];
+    for roi_id = 1:length(widefile.allresults.roi)
+        [x y] = find(widefile.allresults.roi{roi_id});
+        wideCentroids = [wideCentroids; round(mean([x, y], 1))];    
+    end
+    
+    for roi_id = 1:size(indiCentroids)
+        indiCentroid = indiCentroids(roi_id, :);
+        pxdist = sqrt(sum( bsxfun(@minus, wideCentroids, indiCentroid).^2, 2) )
+        
+    end
+    
+    %TODO DEBUG remove exit
+    return
+    
 
 	% Calculate values for the individual DMD
 	for thres = up_thres
@@ -180,10 +205,19 @@ title_string = 'Detection Threshold vs. SNR';
 legend({'Indi', 'Wide'});
 title(title_string);
 
-% DEBUG
 % Print the 4.5 median values
-indi_med = nanmedian(indi_SNR(find(up_thres == 4.5), :), 2)
-wide_med = nanmedian(wide_SNR(find(up_thres == 4.5), :), 2)
+%indi_med = nanmedian(indi_SNR(find(up_thres == 4.5), :), 2)
+%wide_med = nanmedian(wide_SNR(find(up_thres == 4.5), :), 2)
+
+
+%DEBUG
+length(indi_SNR)
+length(wide_SNR)
+
+% Perform paired t-test of all the SNRs between the conditions for each threshold
+for i=1:length(indi_SNR)
+    
+end
 
 % % Plot the total number of spikes
 % figure;
