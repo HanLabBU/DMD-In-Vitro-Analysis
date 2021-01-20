@@ -23,15 +23,17 @@ function [result] = photobleach_estimation(traces, n)
             init_mean_intensity = nanmean(trace(1:n)) -767.7;
             last_mean_intensity = nanmean(trace(end-n:end)) -767.7;
             
-            [fitval, fitgood]=traces_photo_fit( trace);
+            [fitval, fitgood, fitgood2]=traces_photo_fit( trace-767.7);
+%             
+%             if fitval(2) >= fitval(4)
+%               xx=fitval;
+%               fitval(1:2)= fitval(3:4);
+%               fitval(3:4)= xx(1:2);
+%             end
+% %                 
+          % photo_bleach_ratio = [photo_bleach_ratio; [last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(4),fitgood,fitgood2]];
+             photo_bleach_ratio = [photo_bleach_ratio; [last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(3),fitgood,fitgood2]];
             
-            if fitval(2) >= fitval(4)
-              xx=fitval;
-              fitval(1:2)= fitval(3:4);
-              fitval(3:4)= xx(1:2);
-            end
-                
-            photo_bleach_ratio = [photo_bleach_ratio; [last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(4),fitgood]];
             
             end
             

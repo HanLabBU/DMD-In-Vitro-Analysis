@@ -142,9 +142,10 @@ for id=1:length(wideloc)
     end
   end
    
-  % Convert bleaching ratios to percent decay/s (over the course of 20 second trial)
-  indi_temp = (1 - indi_temp).*-100./indi_tr_lengths;
-  wide_temp = (1 - wide_temp).*-100./wide_tr_lengths;
+  % (over the course of 20 second trial)
+  %
+  indi_temp = (1 - indi_temp).*-100;   %./indi_tr_lengths;
+  wide_temp = (1 - wide_temp).*-100;    %./wide_tr_lengths;
   
   indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1));
   wideAllB = horzcat_pad(wideAllB, nanmean(wide_temp,1));
