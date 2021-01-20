@@ -213,7 +213,7 @@ cwide = cwide(use_idx);
 
 
 %% Plot all of the data
-% PLOT subthreshold cross correlation
+% PLOT subthreshold cross correlation with regression line
 figure('Color','w', 'Renderer', 'painters', 'Position', [0 0 900 800]);
 plot(rdist,cindi,'.r','Markersize',10)
 hold on, plot(rdist,cwide,'.b','Markersize',10)
@@ -232,14 +232,6 @@ saveas(gcf, [save_fig_path 'Cross Correlation/Jpeg Format/' title_string '.jpg']
 saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg']);
 saveas(gcf, [save_fig_path 'Cross Correlation/EPS Format/' title_string '.eps'], 'epsc');
 
-%  Kolmogorov-Smirnov test for difference in the two correlations over
-%  distance
-disp('Subthreshold correlation over distance (Comparing DMD vs. Wide Field) Kolmogorov–Smirnov test:');
-[ordered_dis, sidx ] = sort(rdist);
-sorted_cindi = cindi(sidx);
-sorted_cwide = cwide(sidx);
-
-[h, p, ks2stat] = kstest2(sorted_cindi, sorted_cwide)
 
 % Plot subthreshold cross correlation over binned distance
 bin_size = 30; % In um
@@ -309,6 +301,24 @@ for i=1:size(indi_corr_bins, 2)
     ft_corr = [ft_corr; horzcat_pad(nanmean(indi_corr_bins(:, i)), nanmean(wide_corr_bins(:, i)))];
 end
 
+%-- Generate stats table for Vm-Vm binned distance correlations --
+vm_bin_stats = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
+for i=1:(length(bin_labels)/2)
+    vm_bin_stats = [vm_bin_stats; ...
+        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
+end
+
+vm_stats = [];
+
+%  Kolmogorov-Smirnov test for difference in the two correlations over
+%  distance
+disp('Subthreshold correlation over distance (Comparing DMD vs. Wide Field) Kolmogorov–Smirnov test:');
+[ordered_dis, sidx ] = sort(rdist);
+sorted_cindi = cindi(sidx);
+sorted_cwide = cwide(sidx);
+
+[h, p, ks2stat] = kstest2(sorted_cindi, sorted_cwide)
+
 % Unfortunantely it does not like the cell arrays
 %disp('Friedman''s test on Subthreshold correlations:');
 %[p,tbl,stats] = friedman(ft_corr_cells, 1)
@@ -322,6 +332,7 @@ disp('Kruskal-Wallis test on subthreshold DMD:');
 
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
+
 
 % Plot spike-spike correlations over binned distances
 indi_corr_bins = [];
@@ -384,6 +395,15 @@ saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg'])
 
 
 
+%-- Generate stats table for spike-spike binned distance correlations --
+% Spike-Spike correlation bins
+ss_stats_table = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
+for i=1:(length(bin_labels)/2)
+    ss_stats_table = [ss_stats_table; ...
+        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
+end
+ss_stats_table
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
 
@@ -424,7 +444,3 @@ disp('Vm vs spike correlations for widefield:');
 disp('Vm vs spike correlations for targeted:');
 [h, p, ci, stats] = ttest2(cindi, cindiS)
 
-%% Print all of the data in the binned data
-
-% Vm-Vm correlation bins
-stats_table = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
