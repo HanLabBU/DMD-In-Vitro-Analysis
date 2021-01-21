@@ -266,99 +266,6 @@ saveas(gcf, [save_fig_path 'Photobleaching/EPS Format/' title_string '.eps'], 'e
 saveas(gcf, [save_fig_path 'Photobleaching/SVG Format/' title_string '.svg']);
 
 
-%% Violin plots of photobleaching
-%figure('Position', [300 300 800 750]);
-%violin([indiAllB(:), wideAllB(:)], 'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-%ylabel('Photobleach ratio');
-%
-%title_string = [];
-%if ignore_first == 1
-%    title_string = ['Sumamry violin plots photobleaching ratios of individual DMD and wide field without first trials'];
-%else
-%    title_string = ['Summary violin plots photobleaching ratios of individual DMD and wide field'];
-%end
-%title(title_string);
-%
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-
-%% Violin plot of photobleaching ratios by culture FOV
-%figure;
-%fov_bleach = [];
-%for i=1:size(indiAllB, 2)
-%    fov_bleach = horzcat_pad(fov_bleach, indiAllB(:, i));
-%    fov_bleach = horzcat_pad(fov_bleach, wideAllB(:, i));
-%end
-%violin(fov_bleach, 'xlabel', fov_label);
-%ax = gca;
-%xtickangle(ax, 45);
-%title_string = [];
-%if ignore_first == 1
-%    title_string = ['Photobleaching ratio DMD vs. Wide field by fov without first trials'];
-%else
-%    title_string = ['Photobleaching ratio DMD vs. Wide field by fov'];
-%end
-%title(title_string);
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-
-%% Plot of photobleaching ratios line graph between individual DMD and Wide
-%% Field
-%indi_pb_trial_ave = nanmean(indiAllB, 1);
-%wide_pb_trial_ave = nanmean(wideAllB, 1);
-%figure;
-%plot([indi_pb_trial_ave; wide_pb_trial_ave], '-', 'LineWidth', 3);
-%xticks([1, 2]);
-%xticklabels({'Individual DMD', 'Wide Field'});
-%xlim([0.5 2.5]);
-%title_string = [];
-%if ignore_first == 1
-%    title_string = ['Summary line plots photobleaching ratios of individual DMD and wide field without first trials'];
-%else
-%    title_string = ['Summary line plots photobleaching ratios of individual DMD and wide field'];
-%end
-%title(title_string);
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-
-%% Violin plot of the photo decay
-%figure('Position', [300 300 450 450]);
-%indi_decay = -100.*[repmat(1, length(indiAllB(:)), 1) - indiAllB(:)];
-%wide_decay = -100.*[ repmat(1, length(wideAllB(:)), 1) - wideAllB(:)];
-%violin(horzcat_pad(indi_decay, wide_decay), ...
-%    'xlabel', {'DMD', 'Wide Field'}, 'facecolor', [138/255 175/255 201/255]);
-%
-%title_string = [];
-%if ignore_first == 1
-%    title_string = ['Summary violin plots photobleaching decay of individual DMD and wide field without first trials'];
-%else
-%    title_string = ['Summary violin plots photobleaching decay of individual DMD and wide field'];
-%end
-%title(title_string);
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-
-%% Plot the photobleaching decay bar graph 
-%% T test does not work here because the values are not correctly paired
-%figure('COlor','w','Position', [300 300 300 450]);
-%V1=nanmean(indi_decay);V1s=std(indi_decay)./sqrt(length(indi_decay));
-%V2=nanmean(wide_decay);V2s=std(wide_decay)./sqrt(length(wide_decay));
-%bar( [ 1 ], [V1],0.7,'FaceColor', [ 0.7 0.2 0.1]) , hold on,bar( [ 2 ], [V2],0.7,'FaceColor', [0.1 0.4 0.7])
-%set(gca,'Xtick', [ 1 2],'Xticklabel', {'DMD' ; 'Widefield'})
-%errorbar([ 1 2], [ V1 V2], [V1s V2s],'.k','Linewidth', 2)
-%axis tight;ylabel('Signal Reduction %')
-%title_string = [];
-%if ignore_first == 1
-%    title_string = ['Average signal decay without first trials'];
-%else
-%    title_string = ['Average signal decay'];
-%end
-%title(title_string);
-%
-%saveas(gcf, [save_fig_path 'Photobleaching\Jpeg Format\' title_string '.jpg']);
-%saveas(gcf, [save_fig_path 'Photobleaching\EPS Format\' title_string '.eps'], 'epsc');
-
-
 % % Plot the boxplot SNRs
 % figure('COlor','w', 'Renderer', 'painters'),plot(indiSNR,'r'); hold on,plot(wideSNR,'k')
 % legend indi wide
@@ -393,12 +300,4 @@ saveas(gcf, [save_fig_path 'Event Rate/Jpeg Format/' title_string '.jpg']);
 saveas(gcf, [save_fig_path 'Event Rate/EPS Format/' title_string '.eps'], 'epsc');
 saveas(gcf, [save_fig_path 'Event Rate/SVG Format/' title_string '.svg']);
 
-% %% Plot the distribution of spike amplitudes
-% figure('Renderer', 'painters');
-% boxplot(horzcat_pad(indi_samp(:), wide_samp(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors', [ 0.4 0.4 0.4], 'symbol','.k');
-% title_string = ['Spike amplitude Individual DMD vs. Wide Field'];
-% ylabel('delta F');
-% title(title_string);
-% 
-% saveas(gcf, [save_fig_path 'Spike Amplitude\Jpeg Format\' title_string '.jpg']);
-% saveas(gcf, [save_fig_path 'Spike Amplitude\SVG Format\' title_string '.svg']);
+ saveas(gcf, [save_fig_path 'Spike Amplitude\SVG Format\' title_string '.svg']);
