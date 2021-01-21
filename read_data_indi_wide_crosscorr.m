@@ -329,23 +329,11 @@ vm_stats = [vm_stats, ["Kolmogorov-Smirnov test", ""; "P-value", "Statistic"; p,
 disp('Friedman''s test on Subthreshold correlations DMD in column 1, wide field in column 2 (using averages):');
 [p,tbl,stats] = friedman(ft_corr, 1)
 
-vm_stats = [vm_stats, ...
-    ["Friedman's test", repmat("", 1, size(tbl, 2) - 1)   ; ...
-    tbl]]; 
-
 disp('Kruskal-Wallis test on subthreshold DMD:');
 [p,tbl,stats] = kruskalwallis(indi_corr_bins)
 
-vm_stats = [vm_stats, ...
-    ["Kruskal-Wallis for targeted", repmat("", 1, size(tbl, 2) - 1)   ; ...
-    tbl]]; 
-
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
-
-vm_stats = [vm_stats, ...
-    ["Kruskal-Wallis for Widefield", repmat("", 1, size(tbl, 2) - 1)   ; ...
-    tbl]]; 
 
 writematrix(vm_stats, [save_fig_path 'Cross Correlation/Data Tables/vm_binned_stats.csv']);
 

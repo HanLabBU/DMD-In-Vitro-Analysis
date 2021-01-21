@@ -365,9 +365,8 @@ saveas(gcf, [save_fig_path 'Photobleaching/SVG Format/' title_string '.svg']);
 disp('SNR statistics:');
 [h,p,ci,stats] = ttest(indiSNR, wideSNR)
 
-figure('COlor','w')
-boxplot(horzcat_pad(indiSNR(:), wideSNR(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','k');
-ylim([0, 12]);
+figure('COlor','w', 'Renderer', 'painters')
+boxplot(horzcat_pad(indiSNR(:), wideSNR(:)), {'Individual DMD', 'Wide Field'}, 'notch', 'on', 'colors',[ 0.4 0.4 0.4], 'symbol','.k');
 title_string = 'Boxplots of SNR';
 title([title_string ' p= ' num2str(p)]);
 
