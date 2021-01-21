@@ -302,13 +302,13 @@ for i=1:size(indi_corr_bins, 2)
 end
 
 %-- Generate stats table for Vm-Vm binned distance correlations --
+vm_stats = [];
 vm_bin_stats = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
 for i=1:(length(bin_labels)/2)
     vm_bin_stats = [vm_bin_stats; ...
         bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
 end
-
-vm_stats = [];
+vm_stats = [vm_stats, vm_bin_stats];
 
 %  Kolmogorov-Smirnov test for difference in the two correlations over
 %  distance
@@ -319,6 +319,9 @@ sorted_cwide = cwide(sidx);
 
 [h, p, ks2stat] = kstest2(sorted_cindi, sorted_cwide)
 
+% Add kstest output to vm_stats_table
+vm_stats = [vm_stats, ["Kolmogorov-Smirnov test", ""; "P-value", "Statistic"; p, ks2stat; repmat("", 5, 2)]];
+
 % Unfortunantely it does not like the cell arrays
 %disp('Friedman''s test on Subthreshold correlations:');
 %[p,tbl,stats] = friedman(ft_corr_cells, 1)
@@ -326,13 +329,25 @@ sorted_cwide = cwide(sidx);
 disp('Friedman''s test on Subthreshold correlations DMD in column 1, wide field in column 2 (using averages):');
 [p,tbl,stats] = friedman(ft_corr, 1)
 
+vm_stats = [vm_stats, ...
+    ["Friedman's test", repmat("", 1, size(tbl, 2) - 1)   ; ...
+    tbl]]; 
 
 disp('Kruskal-Wallis test on subthreshold DMD:');
 [p,tbl,stats] = kruskalwallis(indi_corr_bins)
 
+vm_stats = [vm_stats, ...
+    ["Kruskal-Wallis for targeted", repmat("", 1, size(tbl, 2) - 1)   ; ...
+    tbl]]; 
+
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
 
+vm_stats = [vm_stats, ...
+    ["Kruskal-Wallis for Widefield", repmat("", 1, size(tbl, 2) - 1)   ; ...
+    tbl]]; 
+
+writematrix(vm_stats, [save_fig_path 'Cross Correlation/Data Tables/vm_binned_stats.csv']);
 
 % Plot spike-spike correlations over binned distances
 indi_corr_bins = [];
@@ -402,7 +417,8 @@ for i=1:(length(bin_labels)/2)
     ss_stats_table = [ss_stats_table; ...
         bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
 end
-ss_stats_table
+
+writematrix(ss_stats_table, [save_fig_path 'Cross Correlation/Data Tables/spike_binned_stats.csv']);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Spike to spike correlation
