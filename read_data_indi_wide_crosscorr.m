@@ -335,6 +335,9 @@ disp('Kruskal-Wallis test on subthreshold DMD:');
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
 
+% Paired t-test for all subthreshold bins between both conditions
+
+
 writematrix(vm_stats, [save_fig_path 'Cross Correlation/Data Tables/vm_binned_stats.csv']);
 
 % Plot spike-spike correlations over binned distances
