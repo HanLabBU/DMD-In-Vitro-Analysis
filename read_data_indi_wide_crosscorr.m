@@ -303,10 +303,11 @@ end
 
 %-- Generate stats table for Vm-Vm binned distance correlations --
 vm_stats = [];
-vm_bin_stats = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
+vm_bin_stats = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs", "P-Value", "Confidence Interval", "Degrees of Freedom", "T-statistic", "s.d. targeted - wide"];
 for i=1:(length(bin_labels)/2)
+    [h, p, ci, stats] = ttest(all_bins(:, 2*i - 1), all_bins(:, 2*i));
     vm_bin_stats = [vm_bin_stats; ...
-        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
+        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1))), p, string(num2str(ci')), stats.df, stats.tstat, stats.sd];
 end
 vm_stats = [vm_stats, vm_bin_stats];
 
@@ -322,6 +323,8 @@ sorted_cwide = cwide(sidx);
 % Add kstest output to vm_stats_table
 vm_stats = [vm_stats, ["Kolmogorov-Smirnov test", ""; "P-value", "Statistic"; p, ks2stat; repmat("", 5, 2)]];
 
+writematrix(vm_stats, [save_fig_path 'Cross Correlation/Data Tables/spike_binned_stats.csv']);
+
 % Unfortunantely it does not like the cell arrays
 %disp('Friedman''s test on Subthreshold correlations:');
 %[p,tbl,stats] = friedman(ft_corr_cells, 1)
@@ -334,9 +337,6 @@ disp('Kruskal-Wallis test on subthreshold DMD:');
 
 disp('Kruskal-Wallis test on subthreshold wide field:');
 [p,tbl,stats] = kruskalwallis(wide_corr_bins)
-
-% Paired t-test for all subthreshold bins between both conditions
-
 
 writematrix(vm_stats, [save_fig_path 'Cross Correlation/Data Tables/vm_binned_stats.csv']);
 
@@ -403,10 +403,11 @@ saveas(gcf, [save_fig_path 'Cross Correlation/SVG Format/' title_string '.svg'])
 
 %-- Generate stats table for spike-spike binned distance correlations --
 % Spike-Spike correlation bins
-ss_stats_table = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs"];
+ss_stats_table = ["Binned Distance", "Median Targeted", "Median Widefield", "Number of neuron Pairs", "P-Value", "Confidence Interval", "Degrees of Freedom", "T-statistic", "s.d. targeted - wide"];
 for i=1:(length(bin_labels)/2)
+    [h, p, ci, stats] = ttest(all_bins(:, 2*i - 1), all_bins(:, 2*i));
     ss_stats_table = [ss_stats_table; ...
-        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1)))];
+        bin_labels(2*i - 1), nanmedian(all_bins(:, 2*i - 1)), nanmedian(all_bins(:, 2*i)), sum(~isnan(all_bins(:, 2*i - 1))), p, string(num2str(ci')), stats.df, stats.tstat, stats.sd];
 end
 
 writematrix(ss_stats_table, [save_fig_path 'Cross Correlation/Data Tables/spike_binned_stats.csv']);
