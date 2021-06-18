@@ -81,111 +81,142 @@ for id=1:length(wideloc)
     clear wrm % ROI centroid
     for id2= 1:length(widefile.allresults.roi)
         [ x y]=find(widefile.allresults.roi{id2});
-        wrm(:,id2)= round(mean([x , y]));end
+        wrm(:,id2)= round(mean([x , y]));
+    end
     clear irm
     for id2= 1:length(indifile.allresults.roi)
         [ x y]=find(indifile.allresults.roi{id2});
-        irm(:,id2)= round(mean([x , y]));end  
+        irm(:,id2)= round(mean([x , y]));
+    end  
     mROI=[];
     for id3=1:size(irm,2) % matching ROI
         cents=irm(:,id3);
         pxdiff=(sqrt(sum(bsxfun(@minus, wrm, cents).^2)));
     
-      wloc=find(pxdiff<8);
-      if ~isempty(wloc)
-    mROI=[mROI; [ id3 wloc]];end
+        wloc=find(pxdiff<8);
+      
+        if ~isempty(wloc)
+            mROI=[mROI; [ id3 wloc]];
+        end
+    
     end
     
-    %%% Put in matrix%%%
- %subthresIndi= indifile.allresults.trace_ws;
-  % subthresWide= widefile.allresults.trace_ws;  
-    subthresIndi= indifile.allresults.orig_traceDN;
-   subthresWide= widefile.allresults.orig_traceDN;
-
-   % subthresIndi= subthresIndi-fastsmooth( subthresIndi,10,1,1);
-    %  subthresWide= subthresWide-fastsmooth( subthresWide,10,1,1);
-nsel=mROI(:,1);
-clear allCmax  ROIdist
-for ind1=1:length(nsel)
-for ind2=1:length(nsel)
-%  A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
-   % [c,lags]= xcorr(A1,A2,10,'Coeff');
-        A1=  (subthresIndi(nsel(ind1),:));A2=  (subthresIndi(nsel(ind2),:));
-    [CC]=corrcoef(A1,A2, 'Rows', 'complete');
-    allCmax(ind1,ind2)= CC(1,2);%max(abs(c));
-   ROIdist(ind1,ind2)= sqrt(sum((irm(:,nsel(ind1)).*sc-irm(:,nsel(ind2)).*sc).^2));
-end;end
-    allCmax(allCmax>0.99)=NaN;
+        %%% Put in matrix%%%
+     %subthresIndi= indifile.allresults.trace_ws;
+      % subthresWide= widefile.allresults.trace_ws;  
+        subthresIndi= indifile.allresults.orig_traceDN;
+       subthresWide= widefile.allresults.orig_traceDN;
     
-clear allCmaxW  
-for ind1=1:length(nsel)
-for ind2=1:length(nsel)
-%  A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
-    A1=  (subthresWide(nsel(ind1),:));A2=  (subthresWide(nsel(ind2),:));
- 
-   [CC]=corrcoef(A1,A2,'rows','complete');
-    allCmaxW(ind1,ind2)= CC(1,2);%max(abs(c));
-   ;
-end;end
-    allCmaxW(allCmaxW>0.99)=NaN;
-      allCmaxW(allCmaxW==0)=NaN;
-    
-    cindi= [cindi; allCmax(:)];
-cwide= [cwide; allCmaxW(:)];
-rdist= [rdist; ROIdist(:)];
-
-    %%
-     subthresIndi= indifile.allresults.roaster;
-   subthresWide= widefile.allresults.roaster;
-rate_thres=5;
+       % subthresIndi= subthresIndi-fastsmooth( subthresIndi,10,1,1);
+        %  subthresWide= subthresWide-fastsmooth( subthresWide,10,1,1);
+    nsel=mROI(:,1);
     clear allCmax  ROIdist
-for ind1=1:length(nsel)
-for ind2=1:length(nsel)
-  A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
-%  if ind1<ind2
- if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
-    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
-    c1=c(95:105);
-    mean_corr = mean(c1);
-    allCmax(ind1,ind2)= mean_corr;
-    allCx= [allCx ; c];
-    allCm=[allCm; mean_corr];
- %     allCx= [allCx ; c];
- %allCmax(ind2,ind1)= c1(n2);
-
- else;  allCmax(ind1,ind2)=NaN;end;
-   ROIdist(ind1,ind2)= sqrt(sum((irm(:,nsel(ind1)).*sc-irm(:,nsel(ind2)).*sc).^2));
-   % ROIdist(ind2,ind1)= ROIdist(ind1,ind2);m
-%  end
-end;end
-    allCmax(allCmax>0.99)=NaN;
-      allCmax(allCmax==0)=NaN;
-    
-  clear allCmaxW  
-for ind1=1:length(nsel)
-for ind2=1:length(nsel)
-  A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
-    if ind1<ind2
-   if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
-    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
-    c1=c(95:105); % This is the +/- around 0 from the 200 parameter, the offset
-    mean_corr = mean(c1); % Use mean
-    allCmaxW(ind1,ind2)= mean_corr;
-     allCmaxW(ind2,ind1)= mean_corr;
-   % allCmaxW(ind2,ind1)=  allCmax(ind1,ind2);
-   else;  allCmaxW(ind1,ind2)=NaN;end
+    for ind1=1:length(nsel)
+        for ind2=1:length(nsel)
+            %  A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
+            % [c,lags]= xcorr(A1,A2,10,'Coeff');
+            A1=  (subthresIndi(nsel(ind1),:));A2=  (subthresIndi(nsel(ind2),:));
+            [CC]=corrcoef(A1,A2, 'Rows', 'complete');
+            allCmax(ind1,ind2)= CC(1,2);%max(abs(c));
+            ROIdist(ind1,ind2)= sqrt(sum((irm(:,nsel(ind1)).*sc-irm(:,nsel(ind2)).*sc).^2));
+        end;
     end
-end;end
+        
+    allCmax(allCmax>0.99)=NaN;
+        
+    clear allCmaxW  
+    
+    for ind1=1:length(nsel)
+        for ind2=1:length(nsel)
+            %  A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
+            A1=  (subthresWide(nsel(ind1),:));A2=  (subthresWide(nsel(ind2),:));
+     
+            [CC]=corrcoef(A1,A2,'rows','complete');
+            allCmaxW(ind1,ind2)= CC(1,2);%max(abs(c));
+            ;
+        end
+    end
+        
+    allCmaxW(allCmaxW>0.99)=NaN;
+    allCmaxW(allCmaxW==0)=NaN;
+        
+    % Check for highly anti-correlated subthreshold pairs
+    anti_corr_i = find(allCmaxW < -0.6);
+    
+    if ~empty(anti_corr_i)
+        
+    end
+    % End of plotting the negative corrleations
+
+
+    cindi= [cindi; allCmax(:)];
+    cwide= [cwide; allCmaxW(:)];
+    rdist= [rdist; ROIdist(:)];
+    
+    %%
+    subthresIndi= indifile.allresults.roaster;
+    subthresWide= widefile.allresults.roaster;
+    rate_thres=5;
+        
+    clear allCmax  ROIdist
+    
+    for ind1=1:length(nsel)
+        for ind2=1:length(nsel)
+            A1=  zscore(subthresIndi(nsel(ind1),:));A2=  zscore(subthresIndi(nsel(ind2),:));
+            %  if ind1<ind2
+            
+            if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
+                [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
+                c1=c(95:105);
+                mean_corr = mean(c1);
+                allCmax(ind1,ind2)= mean_corr;
+                allCx= [allCx ; c];
+                allCm=[allCm; mean_corr];
+                %     allCx= [allCx ; c];
+                %allCmax(ind2,ind1)= c1(n2);
+    
+            else
+                allCmax(ind1,ind2)=NaN;
+            end;
+                ROIdist(ind1,ind2)= sqrt(sum((irm(:,nsel(ind1)).*sc-irm(:,nsel(ind2)).*sc).^2));
+                % ROIdist(ind2,ind1)= ROIdist(ind1,ind2);m
+                 %  end
+        end;
+    end
+    
+    allCmax(allCmax>0.99)=NaN;
+    allCmax(allCmax==0)=NaN;
+        
+    clear allCmaxW  
+    
+    for ind1=1:length(nsel)
+        for ind2=1:length(nsel)
+            A1=  zscore(subthresWide(nsel(ind1),:));A2=  zscore(subthresWide(nsel(ind2),:));
+            
+            if ind1<ind2
+                if  length(find(A1>0)) >rate_thres & length(find(A2>0)) >rate_thres
+                    [c,lags]= xcorr(fastsmooth(A1,10,1,1),fastsmooth(A2,10,1,1),100,'Coeff');
+                    c1=c(95:105); % This is the +/- around 0 from the 200 parameter, the offset
+                    mean_corr = mean(c1); % Use mean
+                    allCmaxW(ind1,ind2)= mean_corr;
+                    allCmaxW(ind2,ind1)= mean_corr;
+                    % allCmaxW(ind2,ind1)=  allCmax(ind1,ind2);
+                else
+                    allCmaxW(ind1,ind2)=NaN;
+                end
+            end
+        end;
+    end
+    
     allCmaxW(allCmaxW>0.99)=NaN;  
-         allCmaxW(allCmaxW==0)=NaN;
-    
-    
-cindiS= [cindiS; allCmax(:)];
-cwideS= [cwideS; allCmaxW(:)];
+    allCmaxW(allCmaxW==0)=NaN;
+            
+    cindiS= [cindiS; allCmax(:)];
+    cwideS= [cwideS; allCmaxW(:)];
+      
 
-
-  
 end
+
 rdist2=rdist;
 cindi=cindi(~isnan(cwide));
 rdist=rdist(~isnan(cwide));
@@ -269,6 +300,7 @@ for i=0:bin_size:last_bin
 
     bin_labels = cat(2, bin_labels, [' ']);
 end
+
 sub_indi_corr_bin = indi_corr_bins;
 sub_wide_corr_bin = wide_corr_bins;
 
