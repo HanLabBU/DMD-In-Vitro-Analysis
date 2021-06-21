@@ -123,16 +123,26 @@ for id=1:length(wideloc)
             wide_raw_trace = widefile.allresults.trial{low_r(iter)}.traces(:, low_c(iter));
             
             figure;
-            subplot(2, 2, 1);
+            subplot(2, 3, 1);
             plot(indi_raw_trace);
             title('Raw trace');
-            subplot(2, 2, 2);
+            subplot(2, 3, 2);
             plot(medfilt1(indi_raw_trace, 51));
             title('Median filtered');
-            subplot(2, 2, 3);
+            subplot(2, 3, 3);
+            stand_indi = medfilt1(indi_raw_trace, 51);
+            stand_indi = (stand_indi - min(stand_indi))./( max(stand_indi) - min(stand_indi));
+            plot(stand_indi);
+            title('Median filtered standardized trace');
+            subplot(2, 3, 4);
             plot(wide_raw_trace);
-            subplot(2, 2, 4);
+            subplot(2, 3, 5);
             plot(medfilt1(wide_raw_trace, 51));
+            subplot(2, 3, 6);
+            stand_wide = medfilt1(wide_raw_trace, 51);
+            stand_wide = (stand_wide - min(stand_wide))./( max(stand_wide) - min(stand_wide));
+            plot(stand_wide);
+
             sgtitle([ses(indiloc(id)).name ' Trial ' num2str(low_r(iter)) ' Neuron ' num2str(low_c(iter))]);
             
             % Store trace difference from filtered part
