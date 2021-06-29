@@ -91,6 +91,8 @@ for id=1:length(wideloc)
     mROI=[mROI; [ id3 wloc]];end
     end
     
+    % -- Consolidate photodecay (bleach) data
+
   if ignore_first == 1 & size(indifile.allresults.bleach, 1) > 1
     % Store the bleaching values except for the first trial
     
@@ -116,11 +118,6 @@ for id=1:length(wideloc)
       end
   end
   
-    %DEBUG figure out what is going on with the Fluorescence decay plot
-    if size(indi_temp < 0.90) > 1
-        disp(['Large bleach trial ' ses(indiloc(id)).name]);
-    end
-
   % Get the length of each trial for each condition as a matrix for each
   % ROI
   indi_tr_lengths = [];
@@ -155,8 +152,6 @@ for id=1:length(wideloc)
   indiAllB = horzcat_pad(indiAllB, nanmean(indi_temp,1));
   wideAllB = horzcat_pad(wideAllB, nanmean(wide_temp,1));
   
-  %DEBUG some trials are extremely long
-  %TODO figure out which trial has longer than 20 sec trials
   if indi_tr_lengths ~= 20
       indi_tr_lengths
   end
@@ -170,13 +165,15 @@ for id=1:length(wideloc)
   fov_label = cat(2, fov_label, [indifile.allresults.fov_name ' ' indifile.allresults.type]);
   fov_label = cat(2, fov_label, [widefile.allresults.fov_name ' ' widefile.allresults.type]);
   
-  % Consolidate SNR values
+
+  %-- Consolidate SNR values
+  
   start_trial = 1;
   if ignore_first == 1
 	start_trial = 2;
   end
   
-  %-- Average neuron's SNRs and store for plotting
+  %Average neuron's SNRs and store for plotting
   
   % Checking which neurons did not spike for a given session
 %   temp_indi_nos = [];
@@ -215,7 +212,7 @@ for id=1:length(wideloc)
     indi_spikerate_neuron = [];
     wide_spikerate_neuron = [];
     
-    %TODO this may need to be adjusted for the different number of trails
+    %TODO this may need to be adjusted for the different number of trials
     %between individual and wide field
     for neuron=1:size(indifile.allresults.roaster, 1)
         

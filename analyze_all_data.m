@@ -23,7 +23,7 @@ weird_traces = {{'1', 'Individual Mask', 3, [1, 2, 4]},  {'1', 'Wide Field', 1, 
 {'26', 'Wide Field', 1, [6, 7]}, {'26', 'Wide Field', 3, [2, 4, 18]},  {'26', 'Wide Field', 4, 18}, ...
 {'3', 'Wide Field', 1, [4, 9, 11]}, ...
 {'4', 'Individual Mask', 2, [3, 4]}, {'4', 'Individual Mask', 3, [3, 8]}, {'4', 'Wide Field', 2, 4}, ...
-} % {Session, condition, <trial no>, <neuron no.>};
+}; % {Session, condition, <trial no>, <neuron no.>};
 
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses
@@ -232,7 +232,7 @@ for i = 1:length({fov_results.name})
     % Load each trial's traces and calculate the photobleaching there
     for j=1:length(allresults.trial)
             traces = allresults.trial{j}.traces;
-            trial_pb_ratios = norm_photobleach_estimation(traces, 300); % Function used for original submission: trial_pb_ratios = photobleach_estimation(traces, 300);
+            trial_pb_ratios = photobleach_estimation(traces, 300); % Function used for original submission: trial_pb_ratios = photobleach_estimation(traces, 300);
             folder_pb_ratios = [folder_pb_ratios; trial_pb_ratios];
     end
     
@@ -244,4 +244,4 @@ for i = 1:length({fov_results.name})
 end
 
 % Remove Session Culture 29
-eval([save_all_path '/*29*.mat']);
+delete([save_all_path '*29*.mat']);
