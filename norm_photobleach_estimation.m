@@ -21,13 +21,16 @@ function [result] = norm_photobleach_estimation(traces, n)
             trace = medfilt1(trace, 51);
             
             % Standardize trace by max - min
-            trace = (trace - min(trace))/(max(trace) - min(trace));
+            trace = (trace - min(trace))./(max(trace) - min(trace));
+ 
+            figure;
+            plot(trace);
 
             if ~any(isnan(trace))
-            init_mean_intensity = nanmean(trace(1:n)) -767.7;
-            last_mean_intensity = nanmean(trace(end-n:end)) -767.7;
+            init_mean_intensity = nanmean(trace(1:n)) ;
+            last_mean_intensity = nanmean(trace(end-n:end));
             
-            [fitval, fitgood, fitgood2]=traces_photo_fit( trace-767.7);
+            %[fitval, fitgood, fitgood2]=traces_photo_fit( trace-767.7);
 %             
 %             if fitval(2) >= fitval(4)
 %               xx=fitval;
@@ -36,8 +39,8 @@ function [result] = norm_photobleach_estimation(traces, n)
 %             end
 % %                 
           % photo_bleach_ratio = [photo_bleach_ratio; [last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(4),fitgood,fitgood2]];
-             photo_bleach_ratio = [photo_bleach_ratio; [last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(3),fitgood,fitgood2]];
-            
+             %photo_bleach_ratio = [photo_bleach_ratio; last_mean_intensity/init_mean_intensity,fitval(1),fitval(2),fitval(3),fitval(3),fitgood,fitgood2]];
+            photo_bleach_ratio = [photo_bleach_ratio, last_mean_intensity/init_mean_intensity];
             
             end
             

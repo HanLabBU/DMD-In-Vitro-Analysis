@@ -24,6 +24,10 @@ ignore_24 = 1;
 % Original Sampling Frequency
 sample_frequency = 500; % Hz
 
+% Num points for mediuam filter
+med_fil_num = 51;
+
+
 ses=dir('*.mat');
 
 %%% search for wide
@@ -60,13 +64,9 @@ for file=1:length(ses)
     end
 end
 
-%% seelct matching ROI
-indiSNR=[]; wideSNR=[]; indiAllB = []; wideAllB = [];
-indi_SRate = []; wide_SRate = [];
+indiAllB = []; wideAllB = [];
 indi_samp = []; wide_samp = [];
 fov_label = {};
-indi_no_spike = [];
-wide_no_spike = [];
 indi_Bdiff = [];
 wide_Bdiff = [];
 indi_Bdiff_norm = [];
@@ -76,6 +76,8 @@ for id=1:length(wideloc)
     wide_temp = [];
     widefile=load(ses(wideloc(id)).name);
     indifile=load(ses(indiloc(id)).name);
+
+    %% seelct matching ROI
     clear wrm % ROI centroid
     for id2= 1:length(widefile.allresults.roi)
         [ x y]=find(widefile.allresults.roi{id2});
@@ -114,72 +116,139 @@ for id=1:length(wideloc)
         [low_r, low_c] = find(indi_temp < 0.90);
         
         % Get all of the more "normal" decay
-        [high_r, high_c] = find(indi_temp >= 0.90);
+        [norm_r, norm_c] = find(indi_temp >= 0.90);
 
-        % Loop through the lower decay
+        
+        % Get all of the more "higher" decay
+        [high_r, high_c] = find(indi_temp >= 1.00);
+
+        % Loop through the super low decay traces
         for iter=1:length(low_r)
             
-            indi_raw_trace = indifile.allresults.trial{low_r(iter)}.traces(:, low_c(iter));
-            wide_raw_trace = widefile.allresults.trial{low_r(iter)}.traces(:, low_c(iter));
-            
-            figure;
+            % Save raw trace for both bad DMD trial and corresponding widefield trial
+            indi_raw_trace = indifile.allresults.trial{low_r(iter)+1}.traces(:, low_c(iter));
+            if size(widefile.allresults.trial, 2) >= low_r(iter)+1
+                wide_raw_trace = widefile.allresults.trial{low_r(iter)+1}.traces(:, low_c(iter));
+            else
+                wide_raw_trace = widefile.allresults.trial{low_r(iter)}.traces(:, low_c(iter));
+            end
+            % First plot the DMD traces
+            figure('Position', [0 0 2000 1500]);
             subplot(2, 3, 1);
             plot(indi_raw_trace);
-            title('Raw trace');
+            title('DMD Raw trace');
             subplot(2, 3, 2);
-            plot(medfilt1(indi_raw_trace, 51));
-            title('Median filtered');
+            plot(medfilt1(indi_raw_trace, med_fil_num));
+            title('DMD Median filtered');
             subplot(2, 3, 3);
-            stand_indi = medfilt1(indi_raw_trace, 51);
+            stand_indi = medfilt1(indi_raw_trace, med_fil_num);
             stand_indi = (stand_indi - min(stand_indi))./( max(stand_indi) - min(stand_indi));
             plot(stand_indi);
-            title('Median filtered standardized trace');
+            title('DMD Median filtered standardized trace');
+            
+            % Plotting the corresponding widefield traces
             subplot(2, 3, 4);
             plot(wide_raw_trace);
+            title('Wide Raw Trace');
             subplot(2, 3, 5);
-            plot(medfilt1(wide_raw_trace, 51));
+            plot(medfilt1(wide_raw_trace, med_fil_num));
+            title('Wide filtered');
             subplot(2, 3, 6);
-            stand_wide = medfilt1(wide_raw_trace, 51);
+            stand_wide = medfilt1(wide_raw_trace, med_fil_num);
             stand_wide = (stand_wide - min(stand_wide))./( max(stand_wide) - min(stand_wide));
             plot(stand_wide);
+            title('Wide median filtered standardized trace');
 
-            sgtitle([ses(indiloc(id)).name ' Trial ' num2str(low_r(iter)) ' Neuron ' num2str(low_c(iter))]);
+            sgtitle(['Low decay ' ses(indiloc(id)).name ' Trial ' num2str(low_r(iter)) ' Neuron ' num2str(low_c(iter))]);
             
             % Store trace difference from filtered part
-            filtered = medfilt1(indi_raw_trace, 51);
+            filtered = medfilt1(indi_raw_trace, med_fil_num);
             low_int = nanmean(filtered(end-300:end));
             high_int = nanmean(filtered(1:300));
             indi_Bdiff = [indi_Bdiff, high_int - low_int];
         
-            filtered = medfilt1(wide_raw_trace, 51);
+            filtered = medfilt1(wide_raw_trace, med_fil_num);
             low_int = nanmean(filtered(end-300:end));
             high_int = nanmean(filtered(1:300));
             wide_Bdiff = [wide_Bdiff, high_int - low_int];
         end
-        
-        for iter=1:length(high_r)
+
+
+        % Loop through the normal 
+        for iter=1:length(norm_r)
             
-            indi_raw_trace = indifile.allresults.trial{high_r(iter)}.traces(:, high_c(iter));
+            indi_raw_trace = indifile.allresults.trial{norm_r(iter)+1}.traces(:, norm_c(iter));
             
             %figure;
             %subplot(2, 2, 1);
             %plot(indi_raw_trace);
             %title('Raw trace');
             %subplot(2, 2, 2);
-            %plot(medfilt1(indi_raw_trace, 51));
+            %plot(medfilt1(indi_raw_trace, med_fil_num));
             %title('Median filtered');
             %subplot(2, 2, 3);
             %plot(wide_raw_trace);
             %subplot(2, 2, 4);
-            %plot(medfilt1(wide_raw_trace, 51));
+            %plot(medfilt1(wide_raw_trace, med_fil_num));
             %sgtitle([ses(indiloc(id)).name ' Trial ' num2str(low_r(iter)) ' Neuron ' num2str(low_c(iter))]);
             
             % Store trace difference from filtered part
-            filtered = medfilt1(indi_raw_trace, 51);
+            filtered = medfilt1(indi_raw_trace, med_fil_num);
             low_int = nanmean(filtered(end-300:end));
             high_int = nanmean(filtered(1:300));
             indi_Bdiff_norm = [indi_Bdiff_norm, high_int - low_int];
         
+        end
+
+        % Loop through the going positive decay trials
+        for iter=1:length(high_r)
+            % Save raw trace for both bad DMD trial and corresponding widefield trial
+            indi_raw_trace = indifile.allresults.trial{high_r(iter)+1}.traces(:, high_c(iter));
+            if size(widefile.allresults.trial, 2) >= high_r(iter)+1
+                wide_raw_trace = widefile.allresults.trial{high_r(iter)+1}.traces(:, high_c(iter));
+            else
+                wide_raw_trace = widefile.allresults.trial{high_r(iter)}.traces(:, high_c(iter));
+            end
+
+            % First plot the DMD traces
+            figure('Position', [0 0 2000 1500]);
+            subplot(2, 3, 1);
+            plot(indi_raw_trace);
+            title('DMD Raw trace');
+            subplot(2, 3, 2);
+            plot(medfilt1(indi_raw_trace, med_fil_num));
+            title('DMD Median filtered');
+            subplot(2, 3, 3);
+            stand_indi = medfilt1(indi_raw_trace, med_fil_num);
+            stand_indi = (stand_indi - min(stand_indi))./( max(stand_indi) - min(stand_indi));
+            plot(stand_indi);
+            title('DMD Median filtered standardized trace');
+            
+            % Plotting the corresponding widefield traces
+            subplot(2, 3, 4);
+            plot(wide_raw_trace);
+            title('Wide raw trace');
+            subplot(2, 3, 5);
+            plot(medfilt1(wide_raw_trace, med_fil_num));
+            title('Wide median filtered');
+            subplot(2, 3, 6);
+            stand_wide = medfilt1(wide_raw_trace, med_fil_num);
+            stand_wide = (stand_wide - min(stand_wide))./( max(stand_wide) - min(stand_wide));
+            plot(stand_wide);
+            title('Wide Median filtered standardized trace');
+
+            sgtitle(['High decay ' ses(indiloc(id)).name ' Trial ' num2str(high_r(iter)) ' Neuron ' num2str(high_c(iter))]);
+            
+            % Store trace difference from filtered part
+            %filtered = medfilt1(indi_raw_trace, med_fil_num);
+            %low_int = nanmean(filtered(end-300:end));
+            %high_int = nanmean(filtered(1:300));
+            %indi_Bdiff = [indi_Bdiff, high_int - low_int];
+        
+            %filtered = medfilt1(wide_raw_trace, med_fil_num);
+            %low_int = nanmean(filtered(end-300:end));
+            %high_int = nanmean(filtered(1:300));
+            %wide_Bdiff = [wide_Bdiff, high_int - low_int];
         end
     end
     
@@ -221,7 +290,7 @@ M=[ indi_Bdiff', wide_Bdiff'];
 boxplot(M, {'Individual DMD', 'Wide Field'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k');
 title('Raw difference between initial and end part of trace');
 
-figure();
-M=[ horzcat_pad(indi_Bdiff', indi_Bdiff_norm')];
-boxplot(M, {'DMD wack decay', 'DMD normal decay'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k');
-title('Raw difference');
+%figure();
+%M=[ horzcat_pad(indi_Bdiff', indi_Bdiff_norm')];
+%boxplot(M, {'DMD wack decay', 'DMD normal decay'},  'notch','on',   'colors',[ 0.4 0.4 0.4], 'symbol','.k');
+%title('Raw difference');

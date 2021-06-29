@@ -10,7 +10,20 @@ save_all_path = '~/handata_server/Pierre Fabris/DMD Project/All In Vitro Analysi
 
 % Exclude trials with obvious motion artefacts
 exclude_motart = 1;
-artefact_trials = {{'Culture 5/Wide', 2}, {'Culture 24/Wide', 3}, {'Culture 23/Wide', 3}, {'Culture 29/Wide', 1}, {'Culture 29/Indi', 1} }; % {Session, <trial no>}
+artefact_trials = {{'Culture 5/Wide', 2}, {'Culture 24/Wide', 3}, {'Culture 23/Wide', 3}, {'Culture 29/Wide', 1}, {'Culture 29/Indi', 1}, {'Culture 24/Indi', 2} }; % {Session, <trial no>}
+
+% Exclude weird looking traces
+weird_traces = {{'1', 'Individual Mask', 3, [1, 2, 4]},  {'1', 'Wide Field', 1, [2, 6, 12]},  ...
+{'1', 'Wide Field', 2, [1, 2, 4, 15]}, ...
+{'21', 'Individual Mask', 2, 2}, {'21', 'Wide Field', 1, [2, 3]}, {'21', 'Wide Field', 2, 2}, ...
+{'23', 'Individual Mask', 1, 2}, {'23', 'Individual Mask', 3, 5}, {'23', 'Wide Field', 2, 6}, ...
+{'24', 'Individual Mask', 1, 13}, {'24', 'Individual Mask', 3, [10, 11]}, {'24', 'Individual Mask', 4, [10, 11]}, {'24', 'Wide Field', 1, 18}, {'24', 'Wide Field', 3, 10}, ...
+{'25', 'Individual Mask', 1, [4, 6]}, {'25', 'Individual Mask', 3, 7}, {'25', 'Wide Field', 1, 6}, {'25', 'Wide Field', 2, 1}, {'25', 'Wide Field', 4, [2, 3, 4]}, ...
+{'26', 'Individual Mask', 3, 4}, {'26', 'Individual Mask', 4, [2, 4, 18]}, ...
+{'26', 'Wide Field', 1, [6, 7]}, {'26', 'Wide Field', 3, [2, 4, 18]},  {'26', 'Wide Field', 4, 18}, ...
+{'3', 'Wide Field', 1, [4, 9, 11]}, ...
+{'4', 'Individual Mask', 2, [3, 4]}, {'4', 'Individual Mask', 3, [3, 8]}, {'4', 'Wide Field', 2, 4}, ...
+} % {Session, condition, <trial no>, <neuron no.>};
 
 % Store all of the directories that have trace data
 % Depending on how the data is organized, this script will perform analyses
@@ -64,6 +77,7 @@ for i = 1:length(FOV_dirs)
     allresults.trial = {};
     num_skipped = 0;
     
+    % Loop through each trial file
     for j=1:length(trace_files)
         
         % Check if this trial is listed to have motion artefacts
@@ -86,7 +100,24 @@ for i = 1:length(FOV_dirs)
             
         end
         
+        % Load this trial's traces
         load([fov trace_files{j}]);
+        
+        % TODO Remove individual traces here
+        for k=1:length(weird_traces)
+            if strcmp(erase(allresults.fov_name, 'Culture '), weird_traces{k}{1}) == 1 & ...
+                    contains(fov, weird_traces{k}{2}) & j == weird_traces{k}{3}
+                
+                % Remove the trace
+                traces(:, weird_traces{k}{4}) = [NaN];
+                
+                % DEBUG
+                disp(['Removed ' allresults.fov_name ' ' fov ' Trial ' num2str(j) ' traces']);
+                
+            end
+        end
+        
+        % TODO maybe the best option would be to have an empty array for trials that were skipped
         allresults.trial{j - num_skipped}.traces = traces;
         
 	end
@@ -165,7 +196,8 @@ for i = 1:length({fov_results.name})
             allresults.spike_snr = result.spike_snr;
             allresults.spike_amplitude = result.spike_amplitude;
             allresults.spike_idx = result.spike_idx;
-            allresults.trace_noise = result.trace_noise;        
+            allresults.trace_noise = result.trace_noise;
+            allresults.orig_trace_untrended = result.orig_trace_untrended;
         else
             % Save all of the SNR results data into the allresults structure
             allresults.orig_trace = horzcat(allresults.orig_trace, result.orig_trace);
@@ -176,7 +208,8 @@ for i = 1:length({fov_results.name})
             allresults.spike_snr = horzcat(allresults.spike_snr, result.spike_snr);
             allresults.spike_amplitude = horzcat(allresults.spike_amplitude, result.spike_amplitude);
             allresults.spike_idx = horzcat( allresults.spike_idx, result.spike_idx);
-            allresults.trace_noise = horzcat(allresults.trace_noise, result.trace_noise);        
+            allresults.trace_noise = horzcat(allresults.trace_noise, result.trace_noise);           
+            allresults.orig_trace_untrended = horzcat(allresults.orig_trace_untrended, result.orig_trace_untrended);
         end
     end
     
@@ -199,7 +232,7 @@ for i = 1:length({fov_results.name})
     % Load each trial's traces and calculate the photobleaching there
     for j=1:length(allresults.trial)
             traces = allresults.trial{j}.traces;
-            trial_pb_ratios = photobleach_estimation(traces, 300);
+            trial_pb_ratios = norm_photobleach_estimation(traces, 300); % Function used for original submission: trial_pb_ratios = photobleach_estimation(traces, 300);
             folder_pb_ratios = [folder_pb_ratios; trial_pb_ratios];
     end
     
@@ -209,3 +242,6 @@ for i = 1:length({fov_results.name})
     % Update/Save all results
     save([save_all_path fov_results(i).name], 'allresults');
 end
+
+% Remove Session Culture 29
+eval([save_all_path '/*29*.mat']);
